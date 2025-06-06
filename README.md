@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -28,8 +27,8 @@
             font-family: 'Roboto', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-primary);
-            overflow: hidden; /* Prevent body scroll by default, handled by platform */
-            -webkit-user-select: none; /* Disable text selection on touch devices */
+            overflow: hidden; /* Prevent body scroll, handled by platform */
+            -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
@@ -61,8 +60,8 @@
             border-right: 1px solid var(--border-color);
             padding-top: 20px; display: flex; flex-direction: column; align-items: center;
             flex-shrink: 0;
-            height: 100vh; /* Make toolbar full height */
-            position: sticky; /* Keep it sticky */
+            height: 100vh;
+            position: sticky;
             top: 0;
             left: 0;
         }
@@ -76,7 +75,7 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
-            height: 100vh; /* Make main content full height */
+            height: 100vh;
             flex-grow: 1;
         }
         .main-header {
@@ -114,7 +113,7 @@
             flex: 1;
             position: relative;
             background-color: var(--bg-dark);
-            overflow: hidden; /* Chart pan/zoom is handled by SVG viewBox */
+            overflow: hidden;
             border-left: 1px solid var(--border-color);
             cursor: grab;
             touch-action: none; /* Prevent browser touch gestures on chart area for independent pan/zoom */
@@ -346,22 +345,29 @@
             .trading-platform {
                 flex-direction: row;
                 height: 100vh; /* Set platform to full viewport height */
-                overflow-y: hidden; /* Platform does not scroll itself */
-                overflow-x: hidden;
+                overflow-y: auto; /* Allow the entire platform to scroll vertically on mobile landscape */
+                overflow-x: hidden; /* Prevent horizontal scroll on the platform */
                 align-items: stretch; /* Stretch children to fill available height */
             }
             .left-toolbar {
                 width: 40px;
                 padding-top: 5px;
-                height: 100%;
+                height: 100vh; /* Take full height of platform */
+                position: sticky; /* Keep it sticky */
+                top: 0;
+                left: 0;
             }
             .toolbar-item {
                 font-size: 16px;
                 margin-bottom: 10px;
             }
             .main-content {
-                height: 100%; /* Take full height of platform */
+                height: auto; /* Allow content to define height */
                 flex-grow: 1;
+                min-height: 100vh; /* Ensure it's at least viewport height */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between; /* Push footer to bottom */
             }
             .main-header {
                 padding: 5px 8px;
@@ -386,6 +392,9 @@
                 font-size: 10px;
                 border-left: none;
                 flex-shrink: 0;
+                /* Position at the very bottom of main-content */
+                margin-top: auto;
+                align-self: flex-end;
             }
 
             .right-panel {
@@ -394,23 +403,12 @@
                 border-left: none;
                 flex-direction: column;
                 flex-shrink: 0;
-                height: 100%; /* Take full height of platform */
-                overflow-y: auto; /* Allow right panel to scroll independently */
-                scrollbar-width: thin; /* Firefox */
-                scrollbar-color: var(--border-color) var(--bg-panel); /* Firefox */
+                height: auto; /* Allow height to adapt to content */
+                min-height: 100vh; /* Ensure it's at least viewport height */
+                overflow-y: visible; /* Content flows, then platform scrolls */
+                justify-content: flex-start; /* Align content to top */
             }
-            /* Custom scrollbar for Webkit browsers (Chrome, Safari) for right-panel */
-            .right-panel::-webkit-scrollbar {
-                width: 4px;
-            }
-            .right-panel::-webkit-scrollbar-track {
-                background: var(--bg-panel);
-            }
-            .right-panel::-webkit-scrollbar-thumb {
-                background-color: var(--border-color);
-                border-radius: 2px;
-                border: 1px solid var(--bg-panel);
-            }
+            /* Remove custom scrollbar styles for right panel as platform now scrolls */
 
             .trade-info-header {
                 margin-bottom: 8px;
@@ -457,7 +455,7 @@
                 margin-bottom: 8px;
                 flex-grow: 1; /* Allow to take ALL available space */
                 flex-shrink: 1;
-                order: 4; /* Place below payout summary */
+                order: 4;
             }
             .trade-notification-item {
                 padding: 4px 6px;
@@ -468,7 +466,7 @@
                 padding-top: 8px;
                 margin-bottom: 8px;
                 flex-shrink: 0;
-                order: 5; /* Place below notification box */
+                order: 5;
             }
             .majority-opinion label { font-size: 11px; }
             .opinion-bar { height: 18px; }
@@ -605,10 +603,9 @@
 
             // --- Variables for Chart Panning and Zooming ---
             let isDragging = false;
-            let lastPointers = new Map(); // Store active pointers for multi-touch (zoom)
-            let initialPointers = new Map(); // Store initial positions for reference
+            let lastPointers = new Map(); // Store active pointers for multi-touch (pan/zoom)
+            let initialPointersForZoom = new Map(); // Store initial pointers only when 2+ fingers are down for zoom calculation
             let initialViewBoxOnZoom = [0, 0, 0, 0]; // Store viewBox state at start of zoom
-
 
             // currentViewBox: [minX, minY, width, height] of the currently visible SVG area
             const initialYCenterSvg = mapPriceToY(currentPrice);
@@ -722,7 +719,9 @@
                 for (let i = 0; i < INITIAL_CANDLE_COUNT; i++) {
                     generateCandleData();
                 }
-                // No auto-scroll here in prefill, let user pan
+                currentViewBox[0] = (candleDataHistory.length * TOTAL_CANDLE_WIDTH) - CHART_WIDTH;
+                currentViewBox[0] = Math.max(0, currentViewBox[0]);
+
                 lastCandleTime = Date.now();
                 renderChart();
             }
@@ -828,7 +827,7 @@
                         if (status === 'win') {
                             trade.notificationElement.classList.add('win');
                         } else {
-                            trade.notification.classList.add('loss');
+                            trade.notificationElement.classList.add('loss');
                         }
                         const infoSpan = trade.notificationElement.querySelector('.info span:last-child');
                         if (infoSpan) {
@@ -1113,29 +1112,30 @@
             btnDown.addEventListener('click', () => openTrade('down'));
 
             // --- Chart Panning & Zooming Event Listeners (using pointer events for better touch support) ---
-            let lastPointers = new Map(); // Store active pointers for multi-touch (zoom)
-            let initialPointers = new Map(); // Store initial positions for reference on zoom start
-            let initialViewBoxOnZoom = [0, 0, 0, 0]; // Store viewBox state at start of zoom
-
             chartContainer.addEventListener('pointerdown', (e) => {
                 isDragging = true;
                 e.preventDefault(); // Prevent default browser gestures (like scrolling)
                 chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag/zoom
                 lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
-                if (lastPointers.size === 2) { // Start of a two-finger gesture
+                if (lastPointers.size === 2) { // Start of a two-finger gesture for zoom
                     initialViewBoxOnZoom = [...currentViewBox]; // Save current viewBox state
                     let p1 = null, p2 = null;
-                    let i = 0;
+                    let count = 0;
                     for (let [id, pos] of lastPointers) {
-                        if (i === 0) p1 = pos;
+                        if (count === 0) p1 = pos;
                         else p2 = pos;
-                        i++;
+                        count++;
                     }
                     if (p1 && p2) {
-                        initialPointers.set(p1.clientX, p1.clientY); // Store initial positions for later calculations
-                        initialPointers.set(p2.clientX, p2.clientY);
+                        // Store initial positions for zoom factor calculation
+                        initialPointersForZoom.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+                        initialPointersForZoom.set(p1.pointerId === e.pointerId ? p2.pointerId : p1.pointerId, 
+                                                p1.pointerId === e.pointerId ? p1 : p2);
                     }
+                } else if (lastPointers.size === 1) { // Single finger, prepare for pan
+                     // Clear initialPointersForZoom if a zoom gesture was interrupted or not started
+                     initialPointersForZoom.clear(); 
                 }
             });
 
@@ -1145,10 +1145,12 @@
                 // Update current pointer position in the map
                 lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
+                const svgRect = svgChart.getBoundingClientRect();
+                const scaleX = currentViewBox[2] / svgRect.width;
+                const scaleY = currentViewBox[3] / svgRect.height;
+
                 if (lastPointers.size === 1) { // Single finger drag (Pan)
-                    // Get current pointer position
                     const currentPointer = lastPointers.get(e.pointerId);
-                    // Get previous pointer position for delta calculation
                     const prevPointer = { 
                         clientX: e.clientX - (e.movementX || 0), // Use movementX/Y for more accurate delta if available
                         clientY: e.clientY - (e.movementY || 0)
@@ -1156,11 +1158,7 @@
 
                     const deltaClientX = currentPointer.clientX - prevPointer.clientX;
                     const deltaClientY = currentPointer.clientY - prevPointer.clientY;
-
-                    const svgRect = svgChart.getBoundingClientRect();
-                    const scaleX = currentViewBox[2] / svgRect.width;
-                    const scaleY = currentViewBox[3] / svgRect.height;
-
+                    
                     const deltaViewBoxX = -deltaClientX * scaleX;
                     const deltaViewBoxY = -deltaClientY * scaleY;
 
@@ -1169,42 +1167,54 @@
 
                 } else if (lastPointers.size === 2) { // Two fingers (Zoom)
                     let p1 = null, p2 = null;
-                    let i = 0;
+                    let count = 0;
                     for (let [id, pos] of lastPointers) {
-                        if (i === 0) p1 = pos;
+                        if (count === 0) p1 = pos;
                         else p2 = pos;
-                        i++;
+                        count++;
                     }
                     if (!p1 || !p2) return;
 
+                    // Get initial positions of these two pointers when the gesture started
+                    const initialP1 = initialPointersForZoom.get(p1.pointerId) || p1; // Fallback if not perfectly captured
+                    const initialP2 = initialPointersForZoom.get(p2.pointerId) || p2;
+
                     // Calculate current distance between fingers
                     const currentDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
-                    
-                    // To calculate zoom factor, we need initial distance from the start of the two-finger gesture
-                    // This is where initialPointers map comes in
-                    const initialDistance = Math.hypot(initialPointers.get(p1.clientX) - initialPointers.get(p2.clientX), initialPointers.get(p1.clientY) - initialPointers.get(p2.clientY));
-                    
-                    const zoomFactor = currentDistance / initialDistance;
+                    // Calculate initial distance between fingers
+                    const initialDistance = Math.hypot(initialP1.clientX - initialP2.clientX, initialP1.clientY - initialP2.clientY);
 
-                    // Clamp zoom factor to avoid extreme zoom levels
-                    const minZoomFactor = 0.1; // Minimum zoom level (10x zoom out)
-                    const maxZoomFactor = 10; // Maximum zoom level (10x zoom in)
-                    const clampedZoomFactor = Math.max(minZoomFactor, Math.min(maxZoomFactor, zoomFactor));
+                    if (initialDistance === 0) return; // Avoid division by zero
 
-                    // Calculate the center point of the two fingers in client coordinates
+                    let zoomFactor = currentDistance / initialDistance;
+
+                    // Clamp zoom factor to avoid extreme zoom levels and invalid viewBox dimensions
+                    const minZoomLevel = 0.05; // 20x zoom out (viewBox is 20 times larger)
+                    const maxZoomLevel = 5;    // 5x zoom in (viewBox is 5 times smaller)
+                    
+                    // Apply zoom factor to initialViewBoxOnZoom dimensions
+                    let newWidth = initialViewBoxOnZoom[2] / zoomFactor;
+                    let newHeight = initialViewBoxOnZoom[3] / zoomFactor;
+
+                    // Clamp new dimensions to ensure they stay within reasonable bounds
+                    newWidth = Math.max(CHART_WIDTH / maxZoomLevel, Math.min(CHART_WIDTH / minZoomLevel, newWidth));
+                    newHeight = Math.max(CHART_HEIGHT / maxZoomLevel, Math.min(CHART_HEIGHT / minZoomLevel, newHeight));
+
+                    // Calculate current center point of the two fingers in client coordinates
                     const clientCenterX = (p1.clientX + p2.clientX) / 2;
                     const clientCenterY = (p1.clientY + p2.clientY) / 2;
 
-                    // Convert client center to SVG coordinates (based on initialViewBox)
-                    const svgRect = svgChart.getBoundingClientRect();
+                    // Convert client center to SVG coordinates (relative to the initialViewBoxOnZoom)
                     const svgCenterX = initialViewBoxOnZoom[0] + (clientCenterX - svgRect.left) / svgRect.width * initialViewBoxOnZoom[2];
                     const svgCenterY = initialViewBoxOnZoom[1] + (clientCenterY - svgRect.top) / svgRect.height * initialViewBoxOnZoom[3];
 
-                    // Apply zoom transformation around the SVG center point
-                    currentViewBox[2] = initialViewBoxOnZoom[2] / clampedZoomFactor; // New width
-                    currentViewBox[3] = initialViewBoxOnZoom[3] / clampedZoomFactor; // New height
-                    currentViewBox[0] = svgCenterX - (currentViewBox[2] / 2); // New X (adjusted for center)
-                    currentViewBox[1] = svgCenterY - (currentViewBox[3] / 2); // New Y (adjusted for center)
+                    // Update currentViewBox dimensions
+                    currentViewBox[2] = newWidth;
+                    currentViewBox[3] = newHeight;
+                    
+                    // Update currentViewBox position to zoom around the center point
+                    currentViewBox[0] = svgCenterX - (currentViewBox[2] / 2);
+                    currentViewBox[1] = svgCenterY - (currentViewBox[3] / 2);
                 }
 
                 renderChart();
@@ -1212,20 +1222,30 @@
 
             chartContainer.addEventListener('pointerup', (e) => {
                 lastPointers.delete(e.pointerId);
-                if (lastPointers.size === 0) {
+                initialPointersForZoom.delete(e.pointerId); // Remove from initial zoom pointers as well
+
+                if (lastPointers.size === 0) { // All fingers lifted
                     isDragging = false;
                     chartContainer.classList.remove('dragging');
-                    initialPointers.clear(); // Clear initial pointers for next zoom
+                    initialPointersForZoom.clear(); // Clear all initial zoom pointers for next gesture
+                } else if (lastPointers.size === 1) { // One finger left after a multi-touch
+                    // If one finger remains, it should initiate a new pan gesture from its current position
+                    isDragging = true;
+                    // Reset initial drag points for the remaining finger
+                    const remainingPointer = lastPointers.values().next().value;
+                    lastPointers.set(remainingPointer.pointerId, { clientX: remainingPointer.clientX, clientY: remainingPointer.clientY });
+                    initialPointersForZoom.clear(); // Clear zoom state
                 }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
 
             chartContainer.addEventListener('pointercancel', (e) => {
                 lastPointers.delete(e.pointerId);
+                initialPointersForZoom.delete(e.pointerId);
                 if (lastPointers.size === 0) {
                     isDragging = false;
                     chartContainer.classList.remove('dragging');
-                    initialPointers.clear();
+                    initialPointersForZoom.clear();
                 }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
