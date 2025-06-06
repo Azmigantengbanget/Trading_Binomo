@@ -651,7 +651,7 @@
 
             // Formats a number as currency (e.g., 14000 -> Rp 14.000)
             function formatCurrency(amount) {
-                return Rp ${formatNumberWithDots(amount)};
+                return `Rp ${formatNumberWithDots(amount)}`;
             }
 
             // --- CORE CHART FUNCTIONS ---
@@ -756,9 +756,9 @@
                 const normalizedY = (priceYInViewBox - currentViewBox[1]) / currentViewBox[3];
                 const yPosPx = normalizedY * chartHeightPx;
 
-                priceIndicator.style.top = ${yPosPx}px;
+                priceIndicator.style.top = `${yPosPx}px`;
                 priceIndicator.style.width = chartContainer.clientWidth + 'px';
-                priceLabel.style.top = ${yPosPx}px;
+                priceLabel.style.top = `${yPosPx}px`;
                 priceLabel.textContent = Math.round(currentPrice);
 
                 updateBetIndicatorsPositions();
@@ -770,7 +770,7 @@
                 const investment = parseFormattedNumber(investmentInput.value);
 
                 if (activeTrades.length >= MAX_ACTIVE_BETS) {
-                    showNotification(Maksimal ${MAX_ACTIVE_BETS} taruhan aktif, 'loss');
+                    showNotification(`Maksimal ${MAX_ACTIVE_BETS} taruhan aktif`, 'loss');
                     return;
                 }
 
@@ -891,7 +891,7 @@
                             trade.labelGroupElement = labelGroup;
 
                             let labelBg = document.createElementNS(svgNS, 'rect');
-                            labelBg.setAttribute('class', bet-label-bg ${trade.direction});
+                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`);
                             labelGroup.appendChild(labelBg);
                             trade.labelBgElement = labelBg;
 
@@ -975,7 +975,7 @@
                     let item = trade.notificationElement;
                     if (!item) {
                         item = document.createElement('div');
-                        item.className = trade-notification-item ${trade.direction};
+                        item.className = `trade-notification-item ${trade.direction}`;
                         item.innerHTML = `
                             <div class="info">
                                 <i class="fa-solid fa-arrow-${trade.direction}"></i>
@@ -1080,14 +1080,14 @@
             }
 
             function showNotification(result, amount) {
-                notification.innerHTML = <p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>;
+                notification.innerHTML = `<p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>`;
                 notification.className = result;
                 setTimeout(() => { notification.className = 'hidden'; }, 3000);
             }
             function formatTime(seconds) {
                 const m = Math.floor(seconds / 60).toString().padStart(2, '0');
                 const s = (seconds % 60).toString().padStart(2, '0');
-                return ${m}:${s};
+                return `${m}:${s}`;
             }
 
             // --- EVENT LISTENERS ---
