@@ -2,9 +2,9 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Simulator Trading (Versi SVG Final)</title>
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
@@ -20,21 +20,26 @@
             --color-yellow: #f9a825;
             --color-win: rgba(38, 166, 154, 0.9);
             --color-loss: rgba(239, 83, 80, 0.9);
-            --color-bet-up-bg: rgba(38, 166, 154, 0.2); 
-            --color-bet-down-bg: rgba(239, 83, 80, 0.2); 
+            --color-bet-up-bg: rgba(38, 166, 154, 0.2);
+            --color-bet-down-bg: rgba(239, 83, 80, 0.2);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Roboto', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-primary);
-            overflow: hidden; /* Prevent body scroll */
+            overflow: hidden; /* Prevent body scroll by default, handle scrolling inside components */
+            -webkit-user-select: none; /* Disable text selection on touch devices */
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: pan-y; /* Allow vertical pan on touch devices for body if needed */
         }
-        .trading-platform { 
-            display: flex; 
-            width: 100vw; 
-            height: 100vh; 
-            position: relative; 
+        .trading-platform {
+            display: flex;
+            width: 100vw;
+            height: 100vh; /* Use 100vh for full screen height */
+            position: relative;
             overflow: hidden; /* Ensure platform itself doesn't cause scrolls */
         }
         #notification {
@@ -54,17 +59,18 @@
             width: 60px; background-color: var(--bg-panel);
             border-right: 1px solid var(--border-color);
             padding-top: 20px; display: flex; flex-direction: column; align-items: center;
+            flex-shrink: 0; /* Prevents shrinking on smaller screens */
         }
         .toolbar-item {
             color: var(--text-secondary); text-decoration: none;
             font-size: 22px; margin-bottom: 25px;
         }
         .toolbar-item.active, .toolbar-item:hover { color: var(--color-yellow); }
-        .main-content { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            min-width: 0; /* Allow chart to shrink on smaller screens */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Allow chart to shrink */
         }
         .main-header {
             display: flex; align-items: center; padding: 10px 20px;
@@ -72,9 +78,9 @@
             flex-wrap: wrap; /* Allow wrapping on smaller screens */
             gap: 10px; /* Space between items if they wrap */
         }
-        .asset-selector { 
-            font-weight: 700; font-size: 16px; display: flex; align-items: center; 
-            flex-shrink: 0; /* Prevent shrinking */
+        .asset-selector {
+            font-weight: 700; font-size: 16px; display: flex; align-items: center;
+            flex-shrink: 0;
         }
         .asset-selector .fa-coins { color: var(--color-yellow); margin-right: 8px; }
         .payout-badge {
@@ -83,9 +89,9 @@
             border-radius: 4px; margin-left: 10px;
             flex-shrink: 0;
         }
-        .account-info { 
-            margin-left: auto; text-align: right; 
-            flex-shrink: 0; /* Prevent shrinking */
+        .account-info {
+            margin-left: auto; text-align: right;
+            flex-shrink: 0;
         }
         .account-type { font-size: 12px; color: var(--text-secondary); display: block;}
         .balance { font-size: 16px; font-weight: 700; }
@@ -95,17 +101,18 @@
             font-weight: 700; margin-left: 20px; cursor: pointer;
             flex-shrink: 0;
         }
-        
+
         #chart-container {
             flex: 1;
             position: relative;
             background-color: var(--bg-dark);
-            overflow: hidden; 
+            overflow: hidden; /* Chart pan is handled by SVG viewBox, not CSS overflow */
             border-left: 1px solid var(--border-color);
-            cursor: grab; 
+            cursor: grab;
+            touch-action: none; /* Prevent browser touch gestures on chart area */
         }
         #chart-container.dragging {
-            cursor: grabbing; 
+            cursor: grabbing;
         }
 
         #candlestick-chart {
@@ -116,33 +123,33 @@
         /* Styles for the custom yellow dot/label indicator on the candle */
         .bet-candle-dot {
             fill: var(--color-yellow);
-            stroke: var(--bg-dark); 
+            stroke: var(--bg-dark);
             stroke-width: 1;
             pointer-events: none;
         }
 
         .bet-label-group {
-            pointer-events: none; 
-            z-index: 20; 
+            pointer-events: none;
+            z-index: 20;
         }
         .bet-label-bg {
-            rx: 3; 
+            rx: 3;
             ry: 3;
         }
         .bet-label-bg.up {
-            fill: var(--color-green); 
+            fill: var(--color-green);
         }
         .bet-label-bg.down {
-            fill: var(--color-red); 
+            fill: var(--color-red);
         }
 
         .bet-label-text {
             font-family: 'Roboto', sans-serif;
             font-size: 10px;
             font-weight: 500;
-            fill: white; 
-            text-anchor: start; 
-            white-space: pre; 
+            fill: white;
+            text-anchor: start;
+            white-space: pre;
         }
 
 
@@ -174,6 +181,7 @@
             font-size: 12px; color: var(--text-secondary);
             border-top: 1px solid var(--border-color);
             border-left: 1px solid var(--border-color);
+            flex-shrink: 0; /* Prevents shrinking */
         }
         .right-panel {
             width: 280px; /* Default for desktop */
@@ -182,30 +190,46 @@
             padding: 15px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Distribute content along the column */
-            flex-shrink: 0; /* Prevent shrinking too much */
+            flex-shrink: 0; /* Prevents shrinking too much */
+            overflow-y: auto; /* Allow scrolling for the right panel on desktop if content overflows */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: var(--border-color) var(--bg-panel); /* Firefox */
         }
+        /* Custom scrollbar for Webkit browsers (Chrome, Safari) */
+        .right-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .right-panel::-webkit-scrollbar-track {
+            background: var(--bg-panel);
+        }
+        .right-panel::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 4px;
+            border: 2px solid var(--bg-panel);
+        }
+
         .trade-info-header {
             display: flex; justify-content: space-between; margin-bottom: 20px;
             border-bottom: 1px solid var(--border-color); padding-bottom: 15px;
-            flex-wrap: wrap; /* Allow wrapping of info boxes if space is tight */
-            gap: 5px; /* Space between info boxes */
+            flex-wrap: wrap;
+            gap: 5px;
+            flex-shrink: 0; /* Prevents shrinking */
         }
-        .info-box { 
-            text-align: center; 
-            flex: 1; /* Allow info boxes to grow */
-            min-width: 80px; /* Minimum width for info boxes */
+        .info-box {
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
         }
         .info-box .label { font-size: 12px; color: var(--text-secondary); display: block; }
-        .info-box .value { 
-            font-size: 14px; 
-            font-weight: 500; 
-            color: var(--text-primary); 
+        .info-box .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
         }
-        .info-box .value.profit { color: var(--color-green); } 
-        .info-box .value.loss { color: var(--color-red); } 
+        .info-box .value.profit { color: var(--color-green); }
+        .info-box .value.loss { color: var(--color-red); }
 
-        .trade-control-box { margin-bottom: 15px; }
+        .trade-control-box { margin-bottom: 15px; flex-shrink: 0; }
         .trade-control-box label { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; display: block; }
         .input-group {
             display: flex; align-items: center; background-color: var(--bg-dark);
@@ -225,12 +249,13 @@
         .payout-summary {
             display: flex; justify-content: space-between; align-items: center;
             background-color: hsla(0,0%,100%,.05); padding: 10px; border-radius: 4px;
+            flex-shrink: 0;
         }
         .payout-value { font-weight: 700; color: var(--text-primary); }
         .payout-percent { color: var(--color-green); font-weight: 700; }
-        .majority-opinion { 
-            margin-top: auto; /* Push to bottom on desktop */
+        .majority-opinion {
             padding-top: 15px; /* Space from element above */
+            flex-shrink: 0;
         }
         .opinion-bar {
             display: flex; height: 25px; border-radius: 4px;
@@ -248,11 +273,11 @@
             width: 100%; height: 50px; border: none; border-radius: 4px;
             font-size: 24px; color: white; cursor: pointer;
             transition: transform 0.1s, background-color 0.2s;
-            flex-shrink: 0; /* Prevent buttons from shrinking */
+            flex-shrink: 0;
         }
         .action-button:disabled { background-color: #555 !important; cursor: not-allowed; }
         .action-button.up { background-color: var(--color-green); margin-top: 15px; margin-bottom: 10px; }
-        .action-button.down { background-color: var(--color-red); margin-bottom: 0; } /* Remove bottom margin for last button */
+        .action-button.down { background-color: var(--color-red); margin-bottom: 0; }
 
         /* Styles for the scrolling notification box */
         #trade-notification-box {
@@ -260,26 +285,27 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             height: 180px; /* Fixed height for desktop */
-            overflow-y: auto; 
-            margin-top: 15px; 
+            overflow-y: auto;
+            margin-top: 15px;
             padding: 5px;
-            display: flex; 
-            flex-direction: column-reverse; 
-            gap: 5px; 
+            display: flex;
+            flex-direction: column-reverse; /* New items appear at bottom */
+            gap: 5px;
             font-size: 12px;
             color: var(--text-primary);
             flex-grow: 1; /* Allow to fill available space between other elements */
             margin-bottom: 15px; /* Space before majority opinion */
+            flex-shrink: 1; /* Allow shrinking if needed */
         }
 
         /* Hide scrollbar for aesthetics (optional) */
         #trade-notification-box::-webkit-scrollbar {
-            width: 0px;  
-            background: transparent; 
+            width: 0px;
+            background: transparent;
         }
         #trade-notification-box {
-            -ms-overflow-style: none;  
-            scrollbar-width: none; 
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
         .trade-notification-item {
@@ -289,24 +315,24 @@
             padding: 8px 10px;
             border-radius: 4px;
             transition: background-color 0.2s ease, opacity 0.3s ease;
-            flex-shrink: 0; 
+            flex-shrink: 0;
         }
         .trade-notification-item.up {
-            background-color: var(--color-bet-up-bg); 
+            background-color: var(--color-bet-up-bg);
         }
         .trade-notification-item.down {
-            background-color: var(--color-bet-down-bg); 
+            background-color: var(--color-bet-down-bg);
         }
         .trade-notification-item.completed {
-            opacity: 0.7; 
-            background-color: hsla(0,0%,100%,.05); 
+            opacity: 0.7;
+            background-color: hsla(0,0%,100%,.05);
             color: var(--text-secondary);
         }
         .trade-notification-item.completed.win {
-            background-color: var(--color-win); 
+            background-color: var(--color-win);
         }
         .trade-notification-item.completed.loss {
-            background-color: var(--color-loss); 
+            background-color: var(--color-loss);
         }
 
         .trade-notification-item .info {
@@ -320,132 +346,147 @@
         /* --- MEDIA QUERIES FOR MOBILE LANDSCAPE --- */
         @media (max-width: 1024px) and (orientation: landscape) {
             body {
-                font-size: 14px; /* Adjust base font size for mobile */
+                font-size: 12px; /* Overall smaller font for mobile */
             }
             .trading-platform {
                 flex-direction: row; /* Keep row layout */
+                height: 100vh; /* Critical for full screen landscape */
+                align-items: stretch; /* Stretch children to fill height */
             }
             .left-toolbar {
-                width: 50px; /* Slightly smaller toolbar */
-                padding-top: 10px;
+                width: 40px; /* Even smaller toolbar for more space */
+                padding-top: 5px;
+                display: flex; /* Ensure it's still flex */
+                align-items: center;
+                justify-content: flex-start; /* Align icons to top */
             }
             .toolbar-item {
-                font-size: 18px;
-                margin-bottom: 15px;
+                font-size: 16px;
+                margin-bottom: 10px;
             }
             .main-header {
-                padding: 8px 10px;
-                font-size: 14px;
-            }
-            .asset-selector {
-                font-size: 14px;
-            }
-            .payout-badge {
-                font-size: 10px;
-                padding: 2px 4px;
-            }
-            .account-info {
-                font-size: 14px;
-            }
-            .balance {
-                font-size: 14px;
-            }
-            .deposit-button {
-                padding: 6px 12px;
+                padding: 5px 8px;
                 font-size: 12px;
-                margin-left: 10px;
+                flex-wrap: nowrap; /* Prevent wrapping in header */
+                overflow-x: auto; /* Allow horizontal scroll if header overflows */
+                justify-content: flex-start; /* Align to start for scrolling */
+                gap: 5px; /* Smaller gap */
             }
+            .main-header::-webkit-scrollbar { height: 0px; } /* Hide scrollbar */
+            .main-header { -ms-overflow-style: none; scrollbar-width: none; }
+
+            .asset-selector { font-size: 12px; }
+            .payout-badge { font-size: 9px; padding: 1px 3px; margin-left: 5px; }
+            .account-info { font-size: 12px; margin-left: auto; }
+            .balance { font-size: 12px; }
+            .deposit-button { padding: 4px 8px; font-size: 10px; margin-left: 8px; }
 
             .main-footer {
-                padding: 5px 10px;
+                padding: 4px 8px;
                 font-size: 10px;
+                border-left: none; /* No border needed if panel sits directly below */
             }
 
             .right-panel {
-                width: 200px; /* Make right panel narrower for mobile landscape */
-                padding: 10px;
-                border-left: none; /* Remove left border for cleaner look */
-                overflow-y: auto; /* Allow scrolling for the entire panel if content overflows */
-                flex-shrink: 0; /* Important to keep its width */
-                justify-content: flex-start; /* Align content from top */
-                gap: 10px; /* Add some consistent spacing */
+                width: 180px; /* Much narrower right panel */
+                padding: 8px;
+                border-left: none; /* Remove left border for mobile */
+                overflow-y: auto; /* Enable scrolling for the entire right panel */
+                flex-grow: 0; /* Don't grow, keep specific width */
+                flex-shrink: 0; /* Don't shrink below 180px */
+                height: 100vh; /* Take full height */
+                justify-content: flex-start; /* Stack content from top */
+                align-items: stretch; /* Children take full width */
+            }
+            /* Adjust scrollbar for right panel on mobile */
+            .right-panel::-webkit-scrollbar {
+                width: 4px;
+            }
+            .right-panel::-webkit-scrollbar-thumb {
+                border-radius: 2px;
+                border: 1px solid var(--bg-panel);
             }
 
             .trade-info-header {
-                margin-bottom: 10px;
-                padding-bottom: 10px;
-                flex-wrap: nowrap; /* Prevent wrapping for info boxes, make them fit */
-                overflow-x: auto; /* Allow horizontal scroll if they truly don't fit */
-                justify-content: space-around; /* Distribute items more evenly */
+                margin-bottom: 8px;
+                padding-bottom: 8px;
+                flex-wrap: wrap; /* Allow wrapping of info boxes within narrower panel */
+                gap: 3px; /* Smaller gap for info boxes */
+                justify-content: space-between;
+                border-bottom: 1px solid var(--border-color); /* Keep border */
+                flex-shrink: 0; /* Important */
             }
-             /* Hide scrollbar for trade-info-header if it overflows */
-            .trade-info-header::-webkit-scrollbar { height: 0px; }
-            .trade-info-header { -ms-overflow-style: none; scrollbar-width: none; }
-
             .info-box {
-                min-width: unset; /* Remove min-width to allow shrinking */
-                flex-shrink: 0; /* Allow shrinking if necessary */
+                min-width: unset; /* Remove fixed min-width for flexibility */
+                flex-basis: 48%; /* Try to fit two per line */
             }
-            .info-box .label { font-size: 10px; }
-            .info-box .value { font-size: 12px; }
+            .info-box .label { font-size: 9px; }
+            .info-box .value { font-size: 11px; }
 
-            .trade-control-box { 
-                margin-bottom: 10px; 
-                padding-top: 5px; /* Add slight padding to separate */
+            .trade-control-box {
+                margin-bottom: 8px;
+                padding-top: 5px;
+                flex-shrink: 0;
             }
-            .trade-control-box label { font-size: 12px; margin-bottom: 5px; }
-            .input-group { height: 35px; } /* Slightly smaller input group */
-            .btn-adjust { width: 35px; height: 35px; font-size: 18px; }
-            .input-group input { font-size: 14px; }
+            .trade-control-box label { font-size: 11px; margin-bottom: 4px; }
+            .input-group { height: 30px; } /* Even smaller input group */
+            .btn-adjust { width: 30px; height: 30px; font-size: 16px; }
+            .input-group input { font-size: 12px; }
+            .currency-symbol { padding-left: 5px; }
 
             .payout-summary {
-                padding: 8px;
-                margin-bottom: 10px;
-                font-size: 12px;
+                padding: 6px;
+                margin-bottom: 8px;
+                font-size: 11px;
+                flex-shrink: 0;
             }
-            .payout-percent { font-size: 10px; }
+            .payout-percent { font-size: 9px; }
 
             #trade-notification-box {
-                height: auto; /* Allow height to be flexible */
-                flex-grow: 1; /* Take up remaining space */
-                max-height: 150px; /* Limit height to prevent taking too much space */
-                margin-bottom: 10px; /* Reduce margin */
+                height: auto; /* Height is flexible based on content */
+                max-height: 100px; /* Limit max height to prevent too much space */
+                margin-top: 8px;
+                margin-bottom: 8px;
+                flex-grow: 1; /* Allow to take available space */
+                flex-shrink: 1; /* Allow shrinking */
             }
             .trade-notification-item {
-                padding: 6px 8px;
-                font-size: 10px;
+                padding: 4px 6px;
+                font-size: 9px;
             }
 
-            .majority-opinion { 
-                margin-top: unset; /* Remove auto margin to position explicitly */
-                order: 1; /* Set order to position it relative to other items */
-                padding-top: 10px; /* Space from above */
+            .majority-opinion {
+                padding-top: 8px; /* Space from above */
+                margin-bottom: 8px; /* Space below */
+                flex-shrink: 0;
             }
-            .majority-opinion label { font-size: 12px; }
-            .opinion-bar { height: 20px; }
+            .majority-opinion label { font-size: 11px; }
+            .opinion-bar { height: 18px; }
 
             .action-button {
-                height: 45px; /* Slightly smaller buttons */
-                font-size: 20px;
-                margin-top: 10px; /* Reduce margin */
-                margin-bottom: 0px; /* Remove bottom margin */
-                order: 2; /* Set order to position it relative to other items */
+                height: 40px; /* Smaller action buttons */
+                font-size: 18px;
+                margin-top: 5px;
+                margin-bottom: 0;
+                flex-shrink: 0;
             }
-            .action-button.up { margin-bottom: 5px; } /* Small space between up/down */
+            .action-button.up { margin-bottom: 5px; }
         }
-        
-        /* Specific adjustments for very small screens if needed */
-        @media (max-width: 600px) and (orientation: landscape) {
-            .left-toolbar { width: 0; display: none; } /* Hide left toolbar to save space */
-            .main-header { padding: 5px; }
-            .asset-selector span { font-size: 12px; }
-            .asset-selector .fa-coins { margin-right: 5px; }
-            .right-panel { width: 180px; padding: 5px; }
-            .trade-info-header .info-box { font-size: 10px; }
-            .trade-control-box label { font-size: 10px; }
-            .input-group input { font-size: 12px; }
-            .action-button { font-size: 18px; height: 40px; }
-            #trade-notification-box { max-height: 100px; } /* Even smaller notif box */
+        /* Further adjustments for extremely small mobile screens (e.g., iPhone SE landscape) */
+        @media (max-width: 500px) and (orientation: landscape) {
+            .left-toolbar { display: none; width: 0; }
+            .right-panel { width: 160px; padding: 4px; }
+            .main-header { padding: 4px; gap: 3px; }
+            .deposit-button { margin-left: 5px; padding: 3px 6px; }
+            .asset-selector, .account-info { font-size: 10px; }
+            .balance { font-size: 10px; }
+            .info-box .label { font-size: 8px; }
+            .info-box .value { font-size: 10px; }
+            .trade-control-box label { font-size: 9px; }
+            .input-group input { font-size: 10px; }
+            .btn-adjust { width: 28px; height: 28px; font-size: 14px; }
+            .action-button { height: 35px; font-size: 16px; }
+            #trade-notification-box { max-height: 80px; }
         }
     </style>
 </head>
@@ -470,7 +511,7 @@
                 </div>
                 <button class="deposit-button">Deposit</button>
             </div>
-            
+
             <div id="chart-container">
                 <svg id="candlestick-chart"></svg>
                 <div id="current-price-indicator">
@@ -505,7 +546,7 @@
             <div class="trade-control-box payout-summary">
                 <label>Pendapatan</label><span id="payout-preview"></span><span class="payout-percent">+83%</span>
             </div>
-            
+
             <div id="trade-notification-box">
                 </div>
 
@@ -524,40 +565,40 @@
         window.onload = function() {
             // --- CONSTANTS & VARIABLES ---
             const PAYOUT_RATE = 0.83;
-            const INITIAL_BALANCE = 1000000000; 
-            const TRADE_DURATIONS = [15, 30, 60, 300]; 
-            let currentDurationIndex = 1; 
-            const CANDLE_INTERVAL = 5000; 
-            const MAX_ACTIVE_BETS = 10; 
-            const MAX_NOTIFICATION_ITEMS = 10; 
+            const INITIAL_BALANCE = 1000000000;
+            const TRADE_DURATIONS = [15, 30, 60, 300];
+            let currentDurationIndex = 1;
+            const CANDLE_INTERVAL = 5000;
+            const MAX_ACTIVE_BETS = 10;
+            const MAX_NOTIFICATION_ITEMS = 10;
 
             let userBalance = INITIAL_BALANCE;
-            let activeTrades = []; 
-            
+            let activeTrades = [];
+
             let candleDataHistory = [];
-            let currentPrice = 50000; 
+            let currentPrice = 50000;
             let lastCandleTime = 0;
 
             // SVG Chart Variables
             const svgChart = document.getElementById('candlestick-chart');
-            const svgNS = "http://www.w3.org/2000/svg"; 
-            const CHART_HEIGHT = 500; 
-            const CHART_WIDTH = 1200; 
-            const MIN_PRICE = 49500;  
-            const MAX_PRICE = 50500;  
-            const VOLATILITY = 40;    
+            const svgNS = "http://www.w3.org/2000/svg";
+            const CHART_HEIGHT = 500;
+            const CHART_WIDTH = 1200;
+            const MIN_PRICE = 49500;
+            const MAX_PRICE = 50500;
+            const VOLATILITY = 40;
             const CANDLE_WIDTH = 10;
             const CANDLE_MARGIN = 2;
             const TOTAL_CANDLE_WIDTH = CANDLE_WIDTH + CANDLE_MARGIN;
-            const INITIAL_CANDLE_COUNT = Math.floor(CHART_WIDTH / TOTAL_CANDLE_WIDTH) * 2; 
+            const INITIAL_CANDLE_COUNT = Math.floor(CHART_WIDTH / TOTAL_CANDLE_WIDTH) * 2;
 
             // --- Variables for Chart Panning ---
             let isDragging = false;
             let startDragClientX;
             let startDragClientY;
-            const initialYCenterSvg = mapPriceToY(currentPrice); 
-            const initialViewBoxY = initialYCenterSvg - (CHART_HEIGHT / 2); 
-            let currentViewBox = [0, initialViewBoxY, CHART_WIDTH, CHART_HEIGHT]; 
+            const initialYCenterSvg = mapPriceToY(currentPrice);
+            const initialViewBoxY = initialYCenterSvg - (CHART_HEIGHT / 2);
+            let currentViewBox = [0, initialViewBoxY, CHART_WIDTH, CHART_HEIGHT];
 
             // --- DOM Elements ---
             const notification = document.getElementById('notification');
@@ -571,12 +612,12 @@
             const btnUp = document.getElementById('btn-up');
             const btnDown = document.getElementById('btn-down');
             const activePayoutDisplay = document.getElementById('active-payout-display');
-            const tradeNotificationBox = document.getElementById('trade-notification-box'); 
+            const tradeNotificationBox = document.getElementById('trade-notification-box');
 
-            let tradeNotifications = []; 
+            let tradeNotifications = [];
 
             // --- HELPER FUNCTIONS FOR NUMBER FORMATTING AND PARSING ---
-            
+
             // Formats a number with dots as thousands separators (e.g., 14000 -> 14.000)
             function formatNumberWithDots(num) {
                 const number = typeof num === 'number' && !isNaN(num) ? num : 0;
@@ -585,10 +626,10 @@
 
             // Parses a formatted number string (e.g., "14.000") back to a float (e.g., 14000)
             function parseFormattedNumber(str) {
-                if (typeof str !== 'string') return str; 
+                if (typeof str !== 'string') return str;
                 const cleanedStr = str.replace(/\./g, '');
                 const parsed = parseFloat(cleanedStr);
-                return isNaN(parsed) ? 0 : parsed; 
+                return isNaN(parsed) ? 0 : parsed;
             }
 
             // Formats a number as currency (e.g., 14000 -> Rp 14.000)
@@ -597,18 +638,18 @@
             }
 
             // --- CORE CHART FUNCTIONS ---
-            
+
             // Maps a price value to a Y-coordinate on the SVG chart.
             function mapPriceToY(price) {
                 const priceRange = MAX_PRICE - MIN_PRICE;
                 const clampedPrice = Math.max(MIN_PRICE, Math.min(MAX_PRICE, price));
                 const percentage = (clampedPrice - MIN_PRICE) / priceRange;
-                return CHART_HEIGHT - (percentage * CHART_HEIGHT); 
+                return CHART_HEIGHT - (percentage * CHART_HEIGHT);
             }
-            
+
             // Renders all candlesticks on the SVG chart
             function renderChart() {
-                const elementsToRemove = Array.from(svgChart.children).filter(el => 
+                const elementsToRemove = Array.from(svgChart.children).filter(el =>
                     !el.classList.contains('bet-candle-dot') &&
                     !el.classList.contains('bet-label-group')
                 );
@@ -617,9 +658,9 @@
                 candleDataHistory.forEach((data, i) => {
                     const candleXPosition = i * TOTAL_CANDLE_WIDTH;
 
-                    if (candleXPosition + TOTAL_CANDLE_WIDTH > currentViewBox[0] && 
+                    if (candleXPosition + TOTAL_CANDLE_WIDTH > currentViewBox[0] &&
                         candleXPosition < currentViewBox[0] + currentViewBox[2]) {
-                        
+
                         const isUp = data.close >= data.open;
                         const color = isUp ? 'var(--color-green)' : 'var(--color-red)';
 
@@ -635,7 +676,7 @@
                         body.setAttribute('x', candleXPosition);
                         body.setAttribute('y', mapPriceToY(Math.max(data.open, data.close)));
                         body.setAttribute('width', CANDLE_WIDTH);
-                        body.setAttribute('height', Math.abs(mapPriceToY(data.open) - mapPriceToY(data.close)) || 1); 
+                        body.setAttribute('height', Math.abs(mapPriceToY(data.open) - mapPriceToY(data.close)) || 1);
                         body.setAttribute('fill', color);
                         svgChart.appendChild(body);
                     }
@@ -643,7 +684,7 @@
 
                 svgChart.setAttribute('viewBox', currentViewBox.join(' '));
 
-                renderBetIndicators(); 
+                renderBetIndicators();
             }
 
             // Generates a new candlestick data point and adds it to history
@@ -653,32 +694,32 @@
                 let high = open;
                 let low = open;
 
-                for (let i = 0; i < 10; i++) { 
+                for (let i = 0; i < 10; i++) {
                     price += (Math.random() - 0.5) * VOLATILITY;
-                    price = Math.max(MIN_PRICE, Math.min(MAX_PRICE, price)); 
+                    price = Math.max(MIN_PRICE, Math.min(MAX_PRICE, price));
                     high = Math.max(high, price);
                     low = Math.min(low, price);
                 }
-                
-                high = Math.max(MIN_PRICE, Math.min(MAX_PRICE, high)); 
-                low = Math.max(MIN_PRICE, Math.min(MAX_PRICE, low)); 
 
-                currentPrice = price; 
+                high = Math.max(MIN_PRICE, Math.min(MAX_PRICE, high));
+                low = Math.max(MIN_PRICE, Math.min(MAX_PRICE, low));
+
+                currentPrice = price;
                 candleDataHistory.push({ open, high, low, close: currentPrice });
-                
-                renderChart(); 
+
+                renderChart();
             }
 
             // Fills the chart with initial candles to avoid empty space
             function prefillChartWithCandles() {
-                for (let i = 0; i < INITIAL_CANDLE_COUNT; i++) { 
-                    generateCandleData(); 
+                for (let i = 0; i < INITIAL_CANDLE_COUNT; i++) {
+                    generateCandleData();
                 }
                 currentViewBox[0] = (candleDataHistory.length * TOTAL_CANDLE_WIDTH) - CHART_WIDTH;
-                currentViewBox[0] = Math.max(0, currentViewBox[0]); 
-                
-                lastCandleTime = Date.now(); 
-                renderChart(); 
+                currentViewBox[0] = Math.max(0, currentViewBox[0]);
+
+                lastCandleTime = Date.now();
+                renderChart();
             }
 
 
@@ -687,15 +728,15 @@
                 const now = Date.now();
                 if (now - lastCandleTime >= CANDLE_INTERVAL) {
                     lastCandleTime = now;
-                    generateCandleData(); 
+                    generateCandleData();
                 }
-                
+
                 checkCompletedTrades();
-                updateAllDisplays(); 
-                
+                updateAllDisplays();
+
                 const chartHeightPx = chartContainer.clientHeight;
                 const priceYInViewBox = mapPriceToY(currentPrice);
-                const normalizedY = (priceYInViewBox - currentViewBox[1]) / currentViewBox[3]; 
+                const normalizedY = (priceYInViewBox - currentViewBox[1]) / currentViewBox[3];
                 const yPosPx = normalizedY * chartHeightPx;
 
                 priceIndicator.style.top = `${yPosPx}px`;
@@ -703,13 +744,13 @@
                 priceLabel.style.top = `${yPosPx}px`;
                 priceLabel.textContent = Math.round(currentPrice);
 
-                updateBetIndicatorsPositions(); 
-                updateNotificationCountdowns(); 
+                updateBetIndicatorsPositions();
+                updateNotificationCountdowns();
             }
-            
+
             // Handles placing a new trade
             function openTrade(direction) {
-                const investment = parseFormattedNumber(investmentInput.value); 
+                const investment = parseFormattedNumber(investmentInput.value);
 
                 if (activeTrades.length >= MAX_ACTIVE_BETS) {
                     showNotification(`Maksimal ${MAX_ACTIVE_BETS} taruhan aktif`, 'loss');
@@ -721,26 +762,26 @@
 
                 userBalance -= investment;
                 const duration = TRADE_DURATIONS[currentDurationIndex];
-                
-                const currentCandleIndex = candleDataHistory.length - 1; 
+
+                const currentCandleIndex = candleDataHistory.length - 1;
 
                 const newTrade = {
-                    id: Date.now() + Math.random(), 
+                    id: Date.now() + Math.random(),
                     investment, direction, duration,
                     startPrice: currentPrice,
                     expiryTime: Date.now() + duration * 1000,
-                    candleIndex: currentCandleIndex, 
-                    dotElement: null,           
-                    labelGroupElement: null,    
-                    labelBgElement: null,       
-                    labelTextElement: null,     
-                    notificationElement: null   
+                    candleIndex: currentCandleIndex,
+                    dotElement: null,
+                    labelGroupElement: null,
+                    labelBgElement: null,
+                    labelTextElement: null,
+                    notificationElement: null
                 };
                 activeTrades.push(newTrade);
 
-                addTradeNotification(newTrade); 
-                renderBetIndicators(); 
-                updateAllDisplays(); 
+                addTradeNotification(newTrade);
+                renderBetIndicators();
+                updateAllDisplays();
             }
 
             // Checks for and processes completed trades
@@ -757,7 +798,7 @@
                     }
                 });
 
-                activeTrades = remainingTrades; 
+                activeTrades = remainingTrades;
 
                 completedTrades.forEach(trade => {
                     const finalPrice = currentPrice;
@@ -766,21 +807,21 @@
 
                     if (trade.direction === 'up' && finalPrice > trade.startPrice) status = 'win';
                     else if (trade.direction === 'down' && finalPrice < trade.startPrice) status = 'win';
-                    
+
                     if (status === 'win') {
                         const winnings = trade.investment * (1 + PAYOUT_RATE);
                         userBalance += winnings;
                         amount = winnings;
                     }
-                    
+
                     showNotification(status, amount);
 
-                    if (trade.dotElement) trade.dotElement.remove(); 
-                    if (trade.labelGroupElement) trade.labelGroupElement.remove(); 
+                    if (trade.dotElement) trade.dotElement.remove();
+                    if (trade.labelGroupElement) trade.labelGroupElement.remove();
 
                     if (trade.notificationElement) {
                         trade.notificationElement.classList.add('completed');
-                        trade.notificationElement.classList.remove('up', 'down'); 
+                        trade.notificationElement.classList.remove('up', 'down');
                         if (status === 'win') {
                             trade.notificationElement.classList.add('win');
                         } else {
@@ -788,17 +829,17 @@
                         }
                         const infoSpan = trade.notificationElement.querySelector('.info span:last-child');
                         if (infoSpan) {
-                            infoSpan.textContent = formatCurrency(amount); 
+                            infoSpan.textContent = formatCurrency(amount);
                         }
                         const timeLeftSpan = trade.notificationElement.querySelector('.time-left');
                         if (timeLeftSpan) {
-                            timeLeftSpan.textContent = status.toUpperCase(); 
+                            timeLeftSpan.textContent = status.toUpperCase();
                         }
                     }
                 });
                 tradeNotifications = tradeNotifications.filter(tn => activeTrades.includes(tn) || tn.completed);
-                renderTradeNotifications(); 
-                updateAllDisplays(); 
+                renderTradeNotifications();
+                updateAllDisplays();
             }
 
             // Renders/updates all active trade indicators on the SVG chart
@@ -811,19 +852,19 @@
                         const dotX = candleX + (CANDLE_WIDTH / 2);
                         const dotY = mapPriceToY(trade.startPrice);
 
-                        const labelApproxWidth = 80; 
+                        const labelApproxWidth = 80;
                         const labelApproxHeight = 20;
 
-                        if (candleX + TOTAL_CANDLE_WIDTH > currentViewBox[0] && 
+                        if (candleX + TOTAL_CANDLE_WIDTH > currentViewBox[0] &&
                             candleX < currentViewBox[0] + currentViewBox[2] &&
-                            dotY > currentViewBox[1] - labelApproxHeight && 
-                            dotY < currentViewBox[1] + currentViewBox[3] + labelApproxHeight) 
+                            dotY > currentViewBox[1] - labelApproxHeight &&
+                            dotY < currentViewBox[1] + currentViewBox[3] + labelApproxHeight)
                         {
                             let dotElement = document.createElementNS(svgNS, 'circle');
                             dotElement.setAttribute('class', 'bet-candle-dot');
                             dotElement.setAttribute('cx', dotX);
                             dotElement.setAttribute('cy', dotY);
-                            dotElement.setAttribute('r', 3); 
+                            dotElement.setAttribute('r', 3);
                             svgChart.appendChild(dotElement);
                             trade.dotElement = dotElement;
 
@@ -833,7 +874,7 @@
                             trade.labelGroupElement = labelGroup;
 
                             let labelBg = document.createElementNS(svgNS, 'rect');
-                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`); // Set class for color
+                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`);
                             labelGroup.appendChild(labelBg);
                             trade.labelBgElement = labelBg;
 
@@ -842,22 +883,22 @@
                             labelGroup.appendChild(labelText);
                             trade.labelTextElement = labelText;
 
-                            // Set text to only nominal amount
-                            labelText.textContent = formatCurrency(trade.investment); 
-                            
-                            const textBBox = labelText.getBBox(); 
+                            labelText.textContent = formatCurrency(trade.investment);
 
-                            const labelXOffset = 5; 
-                            const labelYOffset = - (textBBox.height / 2) - 2; 
+                            const textBBox = labelText.getBBox();
 
-                            labelBg.setAttribute('x', dotX + labelXOffset); 
-                            labelBg.setAttribute('y', dotY + labelYOffset); 
-                            labelBg.setAttribute('width', textBBox.width + 10); 
-                            labelBg.setAttribute('height', textBBox.height + 4); 
+                            const labelXOffset = 5;
+                            const labelYOffset = - (textBBox.height / 2) - 2;
 
-                            labelText.setAttribute('x', dotX + labelXOffset + 5); 
-                            labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2); 
+                            labelBg.setAttribute('x', dotX + labelXOffset);
+                            labelBg.setAttribute('y', dotY + labelYOffset);
+                            labelBg.setAttribute('width', textBBox.width + 10);
+                            labelBg.setAttribute('height', textBBox.height + 4);
+
+                            labelText.setAttribute('x', dotX + labelXOffset + 5);
+                            labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2);
                         } else {
+                            // If indicators are outside view, ensure their elements are null so they are not processed
                             if (trade.dotElement) { trade.dotElement.remove(); trade.dotElement = null; }
                             if (trade.labelGroupElement) { trade.labelGroupElement.remove(); trade.labelGroupElement = null; }
                             trade.labelBgElement = null;
@@ -880,17 +921,17 @@
 
                         trade.labelTextElement.textContent = formatCurrency(trade.investment);
 
-                        const textBBox = trade.labelTextElement.getBBox(); 
-                        const labelXOffset = 5; 
-                        const labelYOffset = - (textBBox.height / 2) - 2; 
+                        const textBBox = trade.labelTextElement.getBBox();
+                        const labelXOffset = 5;
+                        const labelYOffset = - (textBBox.height / 2) - 2;
 
                         trade.labelBgElement.setAttribute('x', dotX + labelXOffset);
                         trade.labelBgElement.setAttribute('y', dotY + labelYOffset);
-                        trade.labelBgElement.setAttribute('width', textBBox.width + 10); 
-                        trade.labelBgElement.setAttribute('height', textBBox.height + 4); 
+                        trade.labelBgElement.setAttribute('width', textBBox.width + 10);
+                        trade.labelBgElement.setAttribute('height', textBBox.height + 4);
 
-                        trade.labelTextElement.setAttribute('x', dotX + labelXOffset + 5);
-                        trade.labelTextElement.setAttribute('y', dotY + labelYOffset + textBBox.height - 2);
+                        labelText.setAttribute('x', dotX + labelXOffset + 5);
+                        labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2);
                     }
                 });
             }
@@ -903,18 +944,18 @@
                 if (tradeNotifications.length > MAX_NOTIFICATION_ITEMS) {
                     const oldestCompletedIndex = tradeNotifications.findIndex(tn => tn.completed);
                     if (oldestCompletedIndex !== -1) {
-                         tradeNotifications.splice(oldestCompletedIndex, 1); 
+                         tradeNotifications.splice(oldestCompletedIndex, 1);
                     } else {
-                         tradeNotifications.shift(); 
+                         tradeNotifications.shift();
                     }
                 }
-                renderTradeNotifications(); 
+                renderTradeNotifications();
             }
 
             function renderTradeNotifications() {
-                tradeNotificationBox.innerHTML = ''; 
+                tradeNotificationBox.innerHTML = '';
 
-                tradeNotifications.slice().reverse().forEach(trade => { 
+                tradeNotifications.slice().reverse().forEach(trade => {
                     let item = trade.notificationElement;
                     if (!item) {
                         item = document.createElement('div');
@@ -928,20 +969,20 @@
                         `;
                         trade.notificationElement = item;
                     }
-                    
-                    if (trade.completed) { 
+
+                    if (trade.completed) {
                         item.classList.add('completed');
-                        item.classList.remove('up', 'down'); 
-                        item.classList.add(trade.status); 
-                        item.querySelector('.time-left').textContent = trade.status.toUpperCase(); 
-                        item.querySelector('.info span:last-child').textContent = formatNumberWithDots(trade.finalAmount); 
+                        item.classList.remove('up', 'down');
+                        item.classList.add(trade.status);
+                        item.querySelector('.time-left').textContent = trade.status.toUpperCase();
+                        item.querySelector('.info span:last-child').textContent = formatNumberWithDots(trade.finalAmount);
                     } else {
                         item.classList.remove('completed', 'win', 'loss');
-                        item.classList.add(trade.direction); 
+                        item.classList.add(trade.direction);
                         item.querySelector('.info span:last-child').textContent = formatNumberWithDots(trade.investment);
                         item.querySelector('.time-left').textContent = formatTime(Math.max(0, Math.round((trade.expiryTime - Date.now()) / 1000)));
                     }
-                    
+
                     tradeNotificationBox.appendChild(item);
                 });
                 tradeNotificationBox.scrollTop = tradeNotificationBox.scrollHeight;
@@ -959,16 +1000,13 @@
 
             // --- HELPER & DISPLAY UPDATE FUNCTIONS ---
             function updateAllDisplays() {
-                // Display user balance with proper formatting
                 balanceDisplay.textContent = formatCurrency(userBalance);
-                
+
                 document.getElementById('current-time').textContent = new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' }) + " GMT+7";
-                // Payout preview should also be formatted correctly
                 payoutPreview.textContent = formatCurrency((parseFormattedNumber(investmentInput.value) || 0) * (1 + PAYOUT_RATE));
-                
+
                 updateActiveTradeInfo();
 
-                // Get the current investment value, properly parsed (removing dots)
                 const currentInvestmentValue = parseFormattedNumber(investmentInput.value);
 
                 btnUp.disabled = (currentInvestmentValue <= 0) || (currentInvestmentValue > userBalance) || (activeTrades.length >= MAX_ACTIVE_BETS) || (currentInvestmentValue < 14000);
@@ -981,8 +1019,8 @@
 
                 let totalInvestment = 0;
                 let potentialProfit = 0;
-                let potentialLoss = 0; 
-                let hasProfitTrade = false; 
+                let potentialLoss = 0;
+                let hasProfitTrade = false;
                 let minRemainingTime = Infinity;
 
                 activeTrades.forEach(trade => {
@@ -1000,24 +1038,24 @@
                     }
 
                     if (isCurrentlyProfitable) {
-                        potentialProfit += trade.investment * PAYOUT_RATE; 
+                        potentialProfit += trade.investment * PAYOUT_RATE;
                         hasProfitTrade = true;
                     } else {
-                        potentialLoss += trade.investment; 
+                        potentialLoss += trade.investment;
                     }
                 });
 
-                activeInvDisp.textContent = formatCurrency(totalInvestment); 
+                activeInvDisp.textContent = formatCurrency(totalInvestment);
                 activeTimDisp.textContent = activeTrades.length > 0 ? formatTime(minRemainingTime) : "00:00";
 
-                activePayoutDisplay.classList.remove('profit', 'loss'); 
+                activePayoutDisplay.classList.remove('profit', 'loss');
 
                 if (activeTrades.length > 0) {
                     if (hasProfitTrade) {
-                        activePayoutDisplay.textContent = formatCurrency(potentialProfit); 
+                        activePayoutDisplay.textContent = formatCurrency(potentialProfit);
                         activePayoutDisplay.classList.add('profit');
                     } else {
-                        activePayoutDisplay.textContent = formatCurrency(-potentialLoss); 
+                        activePayoutDisplay.textContent = formatCurrency(-potentialLoss);
                         activePayoutDisplay.classList.add('loss');
                     }
                 } else {
@@ -1026,13 +1064,9 @@
             }
 
             function showNotification(result, amount) {
-                notification.innerHTML = `<p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>`; 
+                notification.innerHTML = `<p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>`;
                 notification.className = result;
                 setTimeout(() => { notification.className = 'hidden'; }, 3000);
-            }
-            // formatCurrency now only adds "Rp " prefix. Actual number formatting is done by formatNumberWithDots
-            function formatCurrency(amount) {
-                return `Rp ${formatNumberWithDots(amount)}`;
             }
             function formatTime(seconds) {
                 const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -1043,28 +1077,29 @@
             // --- EVENT LISTENERS ---
             document.getElementById('investment-plus').addEventListener('click', () => {
                 let value = parseFormattedNumber(investmentInput.value);
-                investmentInput.value = formatNumberWithDots((value || 0) + 14000); 
+                investmentInput.value = formatNumberWithDots((value || 0) + 14000);
                 updateAllDisplays();
             });
             document.getElementById('investment-minus').addEventListener('click', () => {
                 let value = parseFormattedNumber(investmentInput.value);
-                investmentInput.value = formatNumberWithDots(Math.max(14000, (value || 0) - 14000)); 
+                investmentInput.value = formatNumberWithDots(Math.max(14000, (value || 0) - 14000));
                 updateAllDisplays();
             });
 
             // Format investment input on change/blur
             investmentInput.addEventListener('change', (e) => {
-                let value = parseFormattedNumber(e.target.value); 
+                let value = parseFormattedNumber(e.target.value);
                 e.target.value = formatNumberWithDots(value);
                 updateAllDisplays();
             });
             investmentInput.addEventListener('blur', (e) => {
-                let value = parseFormattedNumber(e.target.value); 
+                let value = parseFormattedNumber(e.target.value);
                 e.target.value = formatNumberWithDots(value);
                 updateAllDisplays();
             });
             // Initial format for investment amount when page loads
             investmentInput.value = formatNumberWithDots(parseFormattedNumber(investmentInput.value));
+
 
             document.getElementById('time-plus').addEventListener('click', () => {
                 currentDurationIndex = (currentDurationIndex + 1) % TRADE_DURATIONS.length;
@@ -1076,58 +1111,64 @@
             });
             btnUp.addEventListener('click', () => openTrade('up'));
             btnDown.addEventListener('click', () => openTrade('down'));
+
+            // --- Chart Panning Event Listeners (using pointer events for better touch support) ---
+            let lastPointerX, lastPointerY;
             
-            // --- Chart Panning Event Listeners ---
-            chartContainer.addEventListener('mousedown', (e) => {
+            chartContainer.addEventListener('pointerdown', (e) => {
+                if (e.pointerType === 'mouse' && e.button !== 0) return; // Only primary mouse button
                 isDragging = true;
                 startDragClientX = e.clientX;
                 startDragClientY = e.clientY;
-                chartContainer.classList.add('dragging'); 
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+                chartContainer.classList.add('dragging');
+                e.preventDefault(); // Prevent default touch actions like scrolling/zooming
+                chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag
             });
 
-            chartContainer.addEventListener('mousemove', (e) => {
+            chartContainer.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
-                e.preventDefault(); 
-
-                const deltaClientX = e.clientX - startDragClientX;
-                const deltaClientY = e.clientY - startDragClientY;
+                
+                const deltaClientX = e.clientX - lastPointerX;
+                const deltaClientY = e.clientY - lastPointerY;
 
                 const svgRect = svgChart.getBoundingClientRect();
                 const scaleX = currentViewBox[2] / svgRect.width;
                 const scaleY = currentViewBox[3] / svgRect.height;
 
-                const deltaViewBoxX = -deltaClientX * scaleX; 
-                const deltaViewBoxY = -deltaClientY * scaleY; 
+                const deltaViewBoxX = -deltaClientX * scaleX;
+                const deltaViewBoxY = -deltaClientY * scaleY;
 
                 currentViewBox[0] += deltaViewBoxX;
                 currentViewBox[1] += deltaViewBoxY;
-                
-                // No clamping of viewBox coordinates here for "infinite" pan
-                
-                startDragClientX = e.clientX;
-                startDragClientY = e.clientY;
 
-                renderChart(); 
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+
+                renderChart();
             });
 
-            chartContainer.addEventListener('mouseup', () => {
+            chartContainer.addEventListener('pointerup', (e) => {
                 isDragging = false;
                 chartContainer.classList.remove('dragging');
+                chartContainer.releasePointerCapture(e.pointerId); // Release pointer capture
             });
 
-            chartContainer.addEventListener('mouseleave', () => {
+            chartContainer.addEventListener('pointercancel', (e) => {
                 isDragging = false;
                 chartContainer.classList.remove('dragging');
+                chartContainer.releasePointerCapture(e.pointerId);
             });
 
 
             // --- INITIALIZATION & MAIN GAME LOOP ---
-            svgChart.setAttribute('viewBox', currentViewBox.join(' ')); 
-            svgChart.setAttribute('preserveAspectRatio', 'none'); 
+            svgChart.setAttribute('viewBox', currentViewBox.join(' '));
+            svgChart.setAttribute('preserveAspectRatio', 'none');
 
-            prefillChartWithCandles(); 
-            updateAllDisplays(); // Call once at start to set initial formatted balance and payout
-            setInterval(mainLoop, 200); 
+            prefillChartWithCandles();
+            updateAllDisplays();
+            setInterval(mainLoop, 200);
         };
     </script>
 </body>
