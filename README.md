@@ -28,19 +28,20 @@
             font-family: 'Roboto', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-primary);
-            /* overflow: hidden; Removed to allow body scroll */
-            -webkit-user-select: none;
+            overflow: hidden; /* Prevent body scroll by default, handled by platform */
+            -webkit-user-select: none; /* Disable text selection on touch devices */
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            /* touch-action: pan-y; Removed as we want full scroll */
         }
         .trading-platform {
             display: flex;
             width: 100vw;
-            min-height: 100vh; /* Use min-height to allow content to push height */
+            height: 100vh; /* Fixed height for platform, allow internal scrolling */
             position: relative;
-            /* overflow: hidden; Removed to allow platform scroll */
+            overflow-y: auto; /* Allow the entire platform to scroll vertically */
+            overflow-x: hidden; /* Prevent horizontal scroll on the platform */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
         #notification {
             position: absolute; top: 50%; left: 50%;
@@ -60,6 +61,10 @@
             border-right: 1px solid var(--border-color);
             padding-top: 20px; display: flex; flex-direction: column; align-items: center;
             flex-shrink: 0;
+            height: 100vh; /* Make toolbar full height */
+            position: sticky; /* Keep it sticky */
+            top: 0;
+            left: 0;
         }
         .toolbar-item {
             color: var(--text-secondary); text-decoration: none;
@@ -71,12 +76,15 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            height: 100vh; /* Make main content full height */
+            flex-grow: 1; /* Allow to grow */
         }
         .main-header {
             display: flex; align-items: center; padding: 10px 20px;
             background-color: var(--bg-panel); border-bottom: 1px solid var(--border-color);
             flex-wrap: wrap;
             gap: 10px;
+            flex-shrink: 0;
         }
         .asset-selector {
             font-weight: 700; font-size: 16px; display: flex; align-items: center;
@@ -109,7 +117,7 @@
             overflow: hidden; /* Chart pan is handled by SVG viewBox, not CSS overflow */
             border-left: 1px solid var(--border-color);
             cursor: grab;
-            touch-action: none; /* Prevent browser touch gestures on chart area */
+            touch-action: none; /* Prevent browser touch gestures on chart area for independent pan/zoom */
         }
         #chart-container.dragging {
             cursor: grabbing;
@@ -191,11 +199,8 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            /* overflow-y: auto; Removed for mobile compatibility, handled by main scroll */
-            /* scrollbar-width: thin; Removed */
-            /* scrollbar-color: var(--border-color) var(--bg-panel); Removed */
+            /* overflow-y: auto; Handled by platform scroll */
         }
-        /* Removed custom scrollbar for Webkit, rely on system default */
 
         .trade-info-header {
             display: flex; justify-content: space-between; margin-bottom: 20px;
@@ -274,7 +279,7 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             height: 180px; /* Fixed height for desktop */
-            overflow-y: auto;
+            overflow-y: auto; /* Allows scrolling for notification items */
             margin-top: 15px;
             padding: 5px;
             display: flex;
@@ -333,28 +338,30 @@
         }
 
         /* --- MEDIA QUERIES FOR MOBILE LANDSCAPE --- */
-        /* This is the primary breakpoint for your mobile landscape image */
         @media (max-width: 1024px) and (orientation: landscape) {
             body {
                 font-size: 12px;
-                overflow-y: auto; /* Allow body to scroll vertically in landscape on smaller screens */
+                overflow: hidden; /* Hide body scroll if platform handles it */
             }
             .trading-platform {
                 flex-direction: row;
-                min-height: 100vh; /* Allow content to push height */
-                height: auto; /* Height adapts to content */
-                align-items: flex-start; /* Align items to top */
+                height: 100vh; /* Set platform to full viewport height */
+                overflow-y: hidden; /* Prevent platform from scrolling itself */
+                overflow-x: hidden;
+                align-items: stretch; /* Stretch children to fill available height */
             }
             .left-toolbar {
                 width: 40px;
                 padding-top: 5px;
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
+                height: 100%; /* Take full height of platform */
             }
             .toolbar-item {
                 font-size: 16px;
                 margin-bottom: 10px;
+            }
+            .main-content {
+                height: 100%; /* Take full height of platform */
+                flex-grow: 1; /* Allow it to grow */
             }
             .main-header {
                 padding: 5px 8px;
@@ -363,6 +370,7 @@
                 overflow-x: auto;
                 justify-content: flex-start;
                 gap: 5px;
+                flex-shrink: 0;
             }
             .main-header::-webkit-scrollbar { height: 0px; }
             .main-header { -ms-overflow-style: none; scrollbar-width: none; }
@@ -373,37 +381,40 @@
             .balance { font-size: 12px; }
             .deposit-button { padding: 4px 8px; font-size: 10px; margin-left: 8px; }
 
-            .main-footer {
-                padding: 4px 8px;
-                font-size: 10px;
-                border-left: none; /* No border needed if panel sits directly below */
-                flex-shrink: 0; /* Important */
-            }
-
+            /* New layout for right panel in landscape */
             .right-panel {
-                width: 180px; /* Much narrower right panel */
+                width: 180px; /* Narrower width for mobile landscape */
                 padding: 8px;
-                border-left: none; /* Remove left border for mobile */
-                overflow-y: visible; /* Content flows, then body scrolls */
-                flex-direction: column; /* Ensure elements stack vertically */
-                justify-content: flex-start; /* Align items from the top */
-                align-items: stretch; /* Make children take full width */
-                flex-grow: 0; /* Don't grow, keep specific width */
-                flex-shrink: 0; /* Don't shrink below 180px */
-                height: auto; /* Allow height to adapt to content */
-                min-height: 100vh; /* Ensure it's at least viewport height */
-                border-bottom: 1px solid var(--border-color); /* Add a bottom border if it's the end of content */
+                border-left: none; /* No left border */
+                flex-direction: column;
+                flex-shrink: 0;
+                height: 100%; /* Take full height of platform */
+                overflow-y: auto; /* Allow right panel to scroll independently */
+                scrollbar-width: thin; /* Firefox */
+                scrollbar-color: var(--border-color) var(--bg-panel); /* Firefox */
             }
-            /* Remove custom scrollbar styles for right panel as body now scrolls */
+            /* Custom scrollbar for Webkit browsers (Chrome, Safari) for right-panel */
+            .right-panel::-webkit-scrollbar {
+                width: 4px;
+            }
+            .right-panel::-webkit-scrollbar-track {
+                background: var(--bg-panel);
+            }
+            .right-panel::-webkit-scrollbar-thumb {
+                background-color: var(--border-color);
+                border-radius: 2px;
+                border: 1px solid var(--bg-panel);
+            }
 
             .trade-info-header {
                 margin-bottom: 8px;
                 padding-bottom: 8px;
-                flex-wrap: wrap; /* Allow wrapping of info boxes within narrower panel */
-                gap: 3px; /* Smaller gap for info boxes */
+                flex-wrap: wrap; /* Allow wrapping */
+                gap: 3px;
                 justify-content: space-between;
                 border-bottom: 1px solid var(--border-color);
                 flex-shrink: 0;
+                order: 1; /* Default order */
             }
             .info-box {
                 min-width: unset;
@@ -416,6 +427,7 @@
                 margin-bottom: 8px;
                 padding-top: 5px;
                 flex-shrink: 0;
+                order: 2; /* Default order */
             }
             .trade-control-box label { font-size: 11px; margin-bottom: 4px; }
             .input-group { height: 30px; }
@@ -428,16 +440,18 @@
                 margin-bottom: 8px;
                 font-size: 11px;
                 flex-shrink: 0;
+                order: 3; /* Default order */
             }
-            .payout-percent { font-size: 9px; }
 
+            /* --- Key layout change for mobile landscape --- */
             #trade-notification-box {
-                height: auto; /* Height is flexible based on content */
-                flex-grow: 1; /* Allow to take available space */
-                max-height: 120px; /* Adjusted max height to leave more space below */
+                height: auto; /* Allow notification box to grow/shrink based on content */
+                max-height: 120px; /* Max height to leave space for other elements */
                 margin-top: 8px;
                 margin-bottom: 8px;
-                flex-shrink: 1;
+                flex-grow: 1; /* Allow to take available space */
+                flex-shrink: 1; /* Allow shrinking */
+                order: 4; /* Place below payout summary */
             }
             .trade-notification-item {
                 padding: 4px 6px;
@@ -446,8 +460,9 @@
 
             .majority-opinion {
                 padding-top: 8px;
-                margin-bottom: 8px;
+                margin-bottom: 8px; /* Maintain some space */
                 flex-shrink: 0;
+                order: 5; /* Place below notification box */
             }
             .majority-opinion label { font-size: 11px; }
             .opinion-bar { height: 18px; }
@@ -456,10 +471,20 @@
                 height: 40px;
                 font-size: 18px;
                 margin-top: 5px;
-                margin-bottom: 0; /* No bottom margin, it's the last element */
+                margin-bottom: 0; /* Remove bottom margin for the absolute last element */
                 flex-shrink: 0;
+                order: 6; /* Place at the very bottom */
             }
             .action-button.up { margin-bottom: 5px; } /* Small space between up/down */
+
+            /* Ensure main-footer aligns with bottom of right-panel */
+            .main-footer {
+                align-self: flex-end; /* Align to the bottom of main-content */
+                width: 100%; /* Take full width */
+                border-bottom: none; /* No bottom border needed */
+                border-top: 1px solid var(--border-color); /* Maintain top border */
+                padding: 5px 10px; /* Adjust padding */
+            }
         }
         /* Further adjustments for extremely small mobile screens (e.g., iPhone SE landscape) */
         @media (max-width: 500px) and (orientation: landscape) {
@@ -581,13 +606,17 @@
             const TOTAL_CANDLE_WIDTH = CANDLE_WIDTH + CANDLE_MARGIN;
             const INITIAL_CANDLE_COUNT = Math.floor(CHART_WIDTH / TOTAL_CANDLE_WIDTH) * 2;
 
-            // --- Variables for Chart Panning ---
+            // --- Variables for Chart Panning and Zooming ---
             let isDragging = false;
-            let startDragClientX;
-            let startDragClientY;
+            let pointers = new Map(); // Store active pointers for multi-touch (zoom)
+            let initialViewBox = [0, 0, CHART_WIDTH, CHART_HEIGHT]; // Store the original viewBox for scaling
+            let currentViewBox = [0, 0, CHART_WIDTH, CHART_HEIGHT]; // [minX, minY, width, height] of the currently visible SVG area
+            
+            // Initialize currentViewBox to center around currentPrice vertically and show recent candles horizontally
             const initialYCenterSvg = mapPriceToY(currentPrice);
-            const initialViewBoxY = initialYCenterSvg - (CHART_HEIGHT / 2);
-            let currentViewBox = [0, initialViewBoxY, CHART_WIDTH, CHART_HEIGHT];
+            currentViewBox[1] = initialYCenterSvg - (CHART_HEIGHT / 2); // Center the viewbox vertically
+            currentViewBox[0] = (INITIAL_CANDLE_COUNT * TOTAL_CANDLE_WIDTH) - CHART_WIDTH; // Show rightmost candles
+            currentViewBox[0] = Math.max(0, currentViewBox[0]); // Ensure not negative
 
             // --- DOM Elements ---
             const notification = document.getElementById('notification');
@@ -1100,52 +1129,92 @@
             btnUp.addEventListener('click', () => openTrade('up'));
             btnDown.addEventListener('click', () => openTrade('down'));
 
-            // --- Chart Panning Event Listeners (using pointer events for better touch support) ---
-            let lastPointerX, lastPointerY;
+            // --- Chart Panning & Zooming Event Listeners (using pointer events for better touch support) ---
+            let lastPointers = new Map(); // Store active pointers for multi-touch (zoom)
 
             chartContainer.addEventListener('pointerdown', (e) => {
-                if (e.pointerType === 'mouse' && e.button !== 0) return; // Only primary mouse button
                 isDragging = true;
-                startDragClientX = e.clientX;
-                startDragClientY = e.clientY;
-                lastPointerX = e.clientX;
-                lastPointerY = e.clientY;
-                chartContainer.classList.add('dragging');
                 e.preventDefault(); // Prevent default touch actions like scrolling/zooming
                 chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag
+                lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
             });
 
             chartContainer.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
-                
-                const deltaClientX = e.clientX - lastPointerX;
-                const deltaClientY = e.clientY - lastPointerY;
 
-                const svgRect = svgChart.getBoundingClientRect();
-                const scaleX = currentViewBox[2] / svgRect.width;
-                const scaleY = currentViewBox[3] / svgRect.height;
+                const currentPointer = { clientX: e.clientX, clientY: e.clientY };
+                const prevPointer = lastPointers.get(e.pointerId);
+                if (!prevPointer) return; // Should not happen
 
-                const deltaViewBoxX = -deltaClientX * scaleX;
-                const deltaViewBoxY = -deltaClientY * scaleY;
+                // Update current pointer position in the map
+                lastPointers.set(e.pointerId, currentPointer);
 
-                currentViewBox[0] += deltaViewBoxX;
-                currentViewBox[1] += deltaViewBoxY;
+                if (lastPointers.size === 1) { // Single finger drag (Pan)
+                    const deltaClientX = currentPointer.clientX - prevPointer.clientX;
+                    const deltaClientY = currentPointer.clientY - prevPointer.clientY;
 
-                lastPointerX = e.clientX;
-                lastPointerY = e.clientY;
+                    const svgRect = svgChart.getBoundingClientRect();
+                    const scaleX = currentViewBox[2] / svgRect.width;
+                    const scaleY = currentViewBox[3] / svgRect.height;
+
+                    const deltaViewBoxX = -deltaClientX * scaleX;
+                    const deltaViewBoxY = -deltaClientY * scaleY;
+
+                    currentViewBox[0] += deltaViewBoxX;
+                    currentViewBox[1] += deltaViewBoxY;
+
+                } else if (lastPointers.size === 2) { // Two fingers (Zoom)
+                    let p1 = null, p2 = null;
+                    let i = 0;
+                    for (let [id, pos] of lastPointers) {
+                        if (i === 0) p1 = pos;
+                        else p2 = pos;
+                        i++;
+                    }
+                    if (!p1 || !p2) return;
+
+                    // Calculate old and new distances between fingers
+                    const oldDistance = Math.hypot(p1.clientX - prevPointer.clientX, p1.clientY - prevPointer.clientY); // This is not quite right, should be distance between two current fingers
+                    const newDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+                    
+                    if (oldDistance === 0) return; // Avoid division by zero
+
+                    const zoomFactor = newDistance / oldDistance;
+
+                    // Calculate current center point of the two fingers in client coordinates
+                    const clientCenterX = (p1.clientX + p2.clientX) / 2;
+                    const clientCenterY = (p1.clientY + p2.clientY) / 2;
+
+                    // Convert client center to SVG coordinates
+                    const svgRect = svgChart.getBoundingClientRect();
+                    const svgCenterX = currentViewBox[0] + (clientCenterX - svgRect.left) / svgRect.width * currentViewBox[2];
+                    const svgCenterY = currentViewBox[1] + (clientCenterY - svgRect.top) / svgRect.height * currentViewBox[3];
+
+                    // Apply zoom relative to the center
+                    currentViewBox[0] = svgCenterX - (currentViewBox[2] / zoomFactor / 2);
+                    currentViewBox[1] = svgCenterY - (currentViewBox[3] / zoomFactor / 2);
+                    currentViewBox[2] /= zoomFactor;
+                    currentViewBox[3] /= zoomFactor;
+                }
 
                 renderChart();
             });
 
             chartContainer.addEventListener('pointerup', (e) => {
-                isDragging = false;
-                chartContainer.classList.remove('dragging');
-                chartContainer.releasePointerCapture(e.pointerId); // Release pointer capture
+                lastPointers.delete(e.pointerId);
+                if (lastPointers.size === 0) {
+                    isDragging = false;
+                    chartContainer.classList.remove('dragging');
+                }
+                chartContainer.releasePointerCapture(e.pointerId);
             });
 
             chartContainer.addEventListener('pointercancel', (e) => {
-                isDragging = false;
-                chartContainer.classList.remove('dragging');
+                lastPointers.delete(e.pointerId);
+                if (lastPointers.size === 0) {
+                    isDragging = false;
+                    chartContainer.classList.remove('dragging');
+                }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
 
