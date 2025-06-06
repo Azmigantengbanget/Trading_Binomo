@@ -28,19 +28,19 @@
             font-family: 'Roboto', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-primary);
-            overflow: hidden; /* Prevent body scroll by default, handle scrolling inside components */
-            -webkit-user-select: none; /* Disable text selection on touch devices */
+            /* overflow: hidden; Removed to allow body scroll */
+            -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            touch-action: pan-y; /* Allow vertical pan on touch devices for body if needed */
+            /* touch-action: pan-y; Removed as we want full scroll */
         }
         .trading-platform {
             display: flex;
             width: 100vw;
-            height: 100vh; /* Use 100vh for full screen height */
+            min-height: 100vh; /* Use min-height to allow content to push height */
             position: relative;
-            overflow: hidden; /* Ensure platform itself doesn't cause scrolls */
+            /* overflow: hidden; Removed to allow platform scroll */
         }
         #notification {
             position: absolute; top: 50%; left: 50%;
@@ -59,7 +59,7 @@
             width: 60px; background-color: var(--bg-panel);
             border-right: 1px solid var(--border-color);
             padding-top: 20px; display: flex; flex-direction: column; align-items: center;
-            flex-shrink: 0; /* Prevents shrinking on smaller screens */
+            flex-shrink: 0;
         }
         .toolbar-item {
             color: var(--text-secondary); text-decoration: none;
@@ -70,13 +70,13 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-width: 0; /* Allow chart to shrink */
+            min-width: 0;
         }
         .main-header {
             display: flex; align-items: center; padding: 10px 20px;
             background-color: var(--bg-panel); border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
-            gap: 10px; /* Space between items if they wrap */
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .asset-selector {
             font-weight: 700; font-size: 16px; display: flex; align-items: center;
@@ -181,7 +181,7 @@
             font-size: 12px; color: var(--text-secondary);
             border-top: 1px solid var(--border-color);
             border-left: 1px solid var(--border-color);
-            flex-shrink: 0; /* Prevents shrinking */
+            flex-shrink: 0;
         }
         .right-panel {
             width: 280px; /* Default for desktop */
@@ -190,30 +190,19 @@
             padding: 15px;
             display: flex;
             flex-direction: column;
-            flex-shrink: 0; /* Prevents shrinking too much */
-            overflow-y: auto; /* Allow scrolling for the right panel on desktop if content overflows */
-            scrollbar-width: thin; /* Firefox */
-            scrollbar-color: var(--border-color) var(--bg-panel); /* Firefox */
+            flex-shrink: 0;
+            /* overflow-y: auto; Removed for mobile compatibility, handled by main scroll */
+            /* scrollbar-width: thin; Removed */
+            /* scrollbar-color: var(--border-color) var(--bg-panel); Removed */
         }
-        /* Custom scrollbar for Webkit browsers (Chrome, Safari) */
-        .right-panel::-webkit-scrollbar {
-            width: 8px;
-        }
-        .right-panel::-webkit-scrollbar-track {
-            background: var(--bg-panel);
-        }
-        .right-panel::-webkit-scrollbar-thumb {
-            background-color: var(--border-color);
-            border-radius: 4px;
-            border: 2px solid var(--bg-panel);
-        }
+        /* Removed custom scrollbar for Webkit, rely on system default */
 
         .trade-info-header {
             display: flex; justify-content: space-between; margin-bottom: 20px;
             border-bottom: 1px solid var(--border-color); padding-bottom: 15px;
             flex-wrap: wrap;
             gap: 5px;
-            flex-shrink: 0; /* Prevents shrinking */
+            flex-shrink: 0;
         }
         .info-box {
             text-align: center;
@@ -254,7 +243,7 @@
         .payout-value { font-weight: 700; color: var(--text-primary); }
         .payout-percent { color: var(--color-green); font-weight: 700; }
         .majority-opinion {
-            padding-top: 15px; /* Space from element above */
+            padding-top: 15px;
             flex-shrink: 0;
         }
         .opinion-bar {
@@ -295,7 +284,7 @@
             color: var(--text-primary);
             flex-grow: 1; /* Allow to fill available space between other elements */
             margin-bottom: 15px; /* Space before majority opinion */
-            flex-shrink: 1; /* Allow shrinking if needed */
+            flex-shrink: 1;
         }
 
         /* Hide scrollbar for aesthetics (optional) */
@@ -344,21 +333,24 @@
         }
 
         /* --- MEDIA QUERIES FOR MOBILE LANDSCAPE --- */
+        /* This is the primary breakpoint for your mobile landscape image */
         @media (max-width: 1024px) and (orientation: landscape) {
             body {
-                font-size: 12px; /* Overall smaller font for mobile */
+                font-size: 12px;
+                overflow-y: auto; /* Allow body to scroll vertically in landscape on smaller screens */
             }
             .trading-platform {
-                flex-direction: row; /* Keep row layout */
-                height: 100vh; /* Critical for full screen landscape */
-                align-items: stretch; /* Stretch children to fill height */
+                flex-direction: row;
+                min-height: 100vh; /* Allow content to push height */
+                height: auto; /* Height adapts to content */
+                align-items: flex-start; /* Align items to top */
             }
             .left-toolbar {
-                width: 40px; /* Even smaller toolbar for more space */
+                width: 40px;
                 padding-top: 5px;
-                display: flex; /* Ensure it's still flex */
+                display: flex;
                 align-items: center;
-                justify-content: flex-start; /* Align icons to top */
+                justify-content: flex-start;
             }
             .toolbar-item {
                 font-size: 16px;
@@ -367,12 +359,12 @@
             .main-header {
                 padding: 5px 8px;
                 font-size: 12px;
-                flex-wrap: nowrap; /* Prevent wrapping in header */
-                overflow-x: auto; /* Allow horizontal scroll if header overflows */
-                justify-content: flex-start; /* Align to start for scrolling */
-                gap: 5px; /* Smaller gap */
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                justify-content: flex-start;
+                gap: 5px;
             }
-            .main-header::-webkit-scrollbar { height: 0px; } /* Hide scrollbar */
+            .main-header::-webkit-scrollbar { height: 0px; }
             .main-header { -ms-overflow-style: none; scrollbar-width: none; }
 
             .asset-selector { font-size: 12px; }
@@ -385,27 +377,24 @@
                 padding: 4px 8px;
                 font-size: 10px;
                 border-left: none; /* No border needed if panel sits directly below */
+                flex-shrink: 0; /* Important */
             }
 
             .right-panel {
                 width: 180px; /* Much narrower right panel */
                 padding: 8px;
                 border-left: none; /* Remove left border for mobile */
-                overflow-y: auto; /* Enable scrolling for the entire right panel */
+                overflow-y: visible; /* Content flows, then body scrolls */
+                flex-direction: column; /* Ensure elements stack vertically */
+                justify-content: flex-start; /* Align items from the top */
+                align-items: stretch; /* Make children take full width */
                 flex-grow: 0; /* Don't grow, keep specific width */
                 flex-shrink: 0; /* Don't shrink below 180px */
-                height: 100vh; /* Take full height */
-                justify-content: flex-start; /* Stack content from top */
-                align-items: stretch; /* Children take full width */
+                height: auto; /* Allow height to adapt to content */
+                min-height: 100vh; /* Ensure it's at least viewport height */
+                border-bottom: 1px solid var(--border-color); /* Add a bottom border if it's the end of content */
             }
-            /* Adjust scrollbar for right panel on mobile */
-            .right-panel::-webkit-scrollbar {
-                width: 4px;
-            }
-            .right-panel::-webkit-scrollbar-thumb {
-                border-radius: 2px;
-                border: 1px solid var(--bg-panel);
-            }
+            /* Remove custom scrollbar styles for right panel as body now scrolls */
 
             .trade-info-header {
                 margin-bottom: 8px;
@@ -413,11 +402,11 @@
                 flex-wrap: wrap; /* Allow wrapping of info boxes within narrower panel */
                 gap: 3px; /* Smaller gap for info boxes */
                 justify-content: space-between;
-                border-bottom: 1px solid var(--border-color); /* Keep border */
-                flex-shrink: 0; /* Important */
+                border-bottom: 1px solid var(--border-color);
+                flex-shrink: 0;
             }
             .info-box {
-                min-width: unset; /* Remove fixed min-width for flexibility */
+                min-width: unset;
                 flex-basis: 48%; /* Try to fit two per line */
             }
             .info-box .label { font-size: 9px; }
@@ -429,7 +418,7 @@
                 flex-shrink: 0;
             }
             .trade-control-box label { font-size: 11px; margin-bottom: 4px; }
-            .input-group { height: 30px; } /* Even smaller input group */
+            .input-group { height: 30px; }
             .btn-adjust { width: 30px; height: 30px; font-size: 16px; }
             .input-group input { font-size: 12px; }
             .currency-symbol { padding-left: 5px; }
@@ -444,11 +433,11 @@
 
             #trade-notification-box {
                 height: auto; /* Height is flexible based on content */
-                max-height: 100px; /* Limit max height to prevent too much space */
+                flex-grow: 1; /* Allow to take available space */
+                max-height: 120px; /* Adjusted max height to leave more space below */
                 margin-top: 8px;
                 margin-bottom: 8px;
-                flex-grow: 1; /* Allow to take available space */
-                flex-shrink: 1; /* Allow shrinking */
+                flex-shrink: 1;
             }
             .trade-notification-item {
                 padding: 4px 6px;
@@ -456,21 +445,21 @@
             }
 
             .majority-opinion {
-                padding-top: 8px; /* Space from above */
-                margin-bottom: 8px; /* Space below */
+                padding-top: 8px;
+                margin-bottom: 8px;
                 flex-shrink: 0;
             }
             .majority-opinion label { font-size: 11px; }
             .opinion-bar { height: 18px; }
 
             .action-button {
-                height: 40px; /* Smaller action buttons */
+                height: 40px;
                 font-size: 18px;
                 margin-top: 5px;
-                margin-bottom: 0;
+                margin-bottom: 0; /* No bottom margin, it's the last element */
                 flex-shrink: 0;
             }
-            .action-button.up { margin-bottom: 5px; }
+            .action-button.up { margin-bottom: 5px; } /* Small space between up/down */
         }
         /* Further adjustments for extremely small mobile screens (e.g., iPhone SE landscape) */
         @media (max-width: 500px) and (orientation: landscape) {
@@ -898,7 +887,6 @@
                             labelText.setAttribute('x', dotX + labelXOffset + 5);
                             labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2);
                         } else {
-                            // If indicators are outside view, ensure their elements are null so they are not processed
                             if (trade.dotElement) { trade.dotElement.remove(); trade.dotElement = null; }
                             if (trade.labelGroupElement) { trade.labelGroupElement.remove(); trade.labelGroupElement = null; }
                             trade.labelBgElement = null;
@@ -1114,7 +1102,7 @@
 
             // --- Chart Panning Event Listeners (using pointer events for better touch support) ---
             let lastPointerX, lastPointerY;
-            
+
             chartContainer.addEventListener('pointerdown', (e) => {
                 if (e.pointerType === 'mouse' && e.button !== 0) return; // Only primary mouse button
                 isDragging = true;
