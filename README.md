@@ -28,9 +28,15 @@
             font-family: 'Roboto', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-primary);
-            overflow: hidden;
+            overflow: hidden; /* Prevent body scroll */
         }
-        .trading-platform { display: flex; width: 100vw; height: 100vh; position: relative; }
+        .trading-platform { 
+            display: flex; 
+            width: 100vw; 
+            height: 100vh; 
+            position: relative; 
+            overflow: hidden; /* Ensure platform itself doesn't cause scrolls */
+        }
         #notification {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -54,24 +60,40 @@
             font-size: 22px; margin-bottom: 25px;
         }
         .toolbar-item.active, .toolbar-item:hover { color: var(--color-yellow); }
-        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .main-content { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            min-width: 0; /* Allow chart to shrink on smaller screens */
+        }
         .main-header {
             display: flex; align-items: center; padding: 10px 20px;
             background-color: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 10px; /* Space between items if they wrap */
+        }
+        .asset-selector { 
+            font-weight: 700; font-size: 16px; display: flex; align-items: center; 
+            flex-shrink: 0; /* Prevent shrinking */
         }
         .asset-selector .fa-coins { color: var(--color-yellow); margin-right: 8px; }
         .payout-badge {
             background-color: hsla(0,0%,100%,.1); color: var(--color-green);
             font-size: 12px; font-weight: 700; padding: 3px 6px;
             border-radius: 4px; margin-left: 10px;
+            flex-shrink: 0;
         }
-        .account-info { margin-left: auto; text-align: right; }
+        .account-info { 
+            margin-left: auto; text-align: right; 
+            flex-shrink: 0; /* Prevent shrinking */
+        }
         .account-type { font-size: 12px; color: var(--text-secondary); display: block;}
         .balance { font-size: 16px; font-weight: 700; }
         .deposit-button {
             background-color: var(--color-yellow); color: #000;
             border: none; border-radius: 4px; padding: 8px 16px;
             font-weight: 700; margin-left: 20px; cursor: pointer;
+            flex-shrink: 0;
         }
         
         #chart-container {
@@ -104,22 +126,21 @@
             z-index: 20; 
         }
         .bet-label-bg {
-            /* fill will be set dynamically based on direction */
             rx: 3; 
             ry: 3;
         }
         .bet-label-bg.up {
-            fill: var(--color-green); /* Green for UP bets */
+            fill: var(--color-green); 
         }
         .bet-label-bg.down {
-            fill: var(--color-red); /* Red for DOWN bets */
+            fill: var(--color-red); 
         }
 
         .bet-label-text {
             font-family: 'Roboto', sans-serif;
             font-size: 10px;
             font-weight: 500;
-            fill: white; /* White text on colored background */
+            fill: white; 
             text-anchor: start; 
             white-space: pre; 
         }
@@ -155,15 +176,26 @@
             border-left: 1px solid var(--border-color);
         }
         .right-panel {
-            width: 280px; background-color: var(--bg-panel);
-            border-left: 1px solid var(--border-color); padding: 15px;
-            display: flex; flex-direction: column;
+            width: 280px; /* Default for desktop */
+            background-color: var(--bg-panel);
+            border-left: 1px solid var(--border-color);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Distribute content along the column */
+            flex-shrink: 0; /* Prevent shrinking too much */
         }
         .trade-info-header {
             display: flex; justify-content: space-between; margin-bottom: 20px;
             border-bottom: 1px solid var(--border-color); padding-bottom: 15px;
+            flex-wrap: wrap; /* Allow wrapping of info boxes if space is tight */
+            gap: 5px; /* Space between info boxes */
         }
-        .info-box { text-align: center; flex: 1; }
+        .info-box { 
+            text-align: center; 
+            flex: 1; /* Allow info boxes to grow */
+            min-width: 80px; /* Minimum width for info boxes */
+        }
         .info-box .label { font-size: 12px; color: var(--text-secondary); display: block; }
         .info-box .value { 
             font-size: 14px; 
@@ -196,7 +228,10 @@
         }
         .payout-value { font-weight: 700; color: var(--text-primary); }
         .payout-percent { color: var(--color-green); font-weight: 700; }
-        .majority-opinion { margin-top: auto; }
+        .majority-opinion { 
+            margin-top: auto; /* Push to bottom on desktop */
+            padding-top: 15px; /* Space from element above */
+        }
         .opinion-bar {
             display: flex; height: 25px; border-radius: 4px;
             overflow: hidden; font-size: 12px; font-weight: 700;
@@ -213,18 +248,18 @@
             width: 100%; height: 50px; border: none; border-radius: 4px;
             font-size: 24px; color: white; cursor: pointer;
             transition: transform 0.1s, background-color 0.2s;
+            flex-shrink: 0; /* Prevent buttons from shrinking */
         }
         .action-button:disabled { background-color: #555 !important; cursor: not-allowed; }
         .action-button.up { background-color: var(--color-green); margin-top: 15px; margin-bottom: 10px; }
-        .action-button.down { background-color: var(--color-red); }
-        .action-button:active:not(:disabled) { transform: scale(0.98); }
+        .action-button.down { background-color: var(--color-red); margin-bottom: 0; } /* Remove bottom margin for last button */
 
         /* Styles for the scrolling notification box */
         #trade-notification-box {
             background-color: var(--bg-dark);
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            height: 180px; 
+            height: 180px; /* Fixed height for desktop */
             overflow-y: auto; 
             margin-top: 15px; 
             padding: 5px;
@@ -233,6 +268,8 @@
             gap: 5px; 
             font-size: 12px;
             color: var(--text-primary);
+            flex-grow: 1; /* Allow to fill available space between other elements */
+            margin-bottom: 15px; /* Space before majority opinion */
         }
 
         /* Hide scrollbar for aesthetics (optional) */
@@ -278,6 +315,137 @@
         }
         .trade-notification-item .time-left {
             font-weight: 700;
+        }
+
+        /* --- MEDIA QUERIES FOR MOBILE LANDSCAPE --- */
+        @media (max-width: 1024px) and (orientation: landscape) {
+            body {
+                font-size: 14px; /* Adjust base font size for mobile */
+            }
+            .trading-platform {
+                flex-direction: row; /* Keep row layout */
+            }
+            .left-toolbar {
+                width: 50px; /* Slightly smaller toolbar */
+                padding-top: 10px;
+            }
+            .toolbar-item {
+                font-size: 18px;
+                margin-bottom: 15px;
+            }
+            .main-header {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+            .asset-selector {
+                font-size: 14px;
+            }
+            .payout-badge {
+                font-size: 10px;
+                padding: 2px 4px;
+            }
+            .account-info {
+                font-size: 14px;
+            }
+            .balance {
+                font-size: 14px;
+            }
+            .deposit-button {
+                padding: 6px 12px;
+                font-size: 12px;
+                margin-left: 10px;
+            }
+
+            .main-footer {
+                padding: 5px 10px;
+                font-size: 10px;
+            }
+
+            .right-panel {
+                width: 200px; /* Make right panel narrower for mobile landscape */
+                padding: 10px;
+                border-left: none; /* Remove left border for cleaner look */
+                overflow-y: auto; /* Allow scrolling for the entire panel if content overflows */
+                flex-shrink: 0; /* Important to keep its width */
+                justify-content: flex-start; /* Align content from top */
+                gap: 10px; /* Add some consistent spacing */
+            }
+
+            .trade-info-header {
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                flex-wrap: nowrap; /* Prevent wrapping for info boxes, make them fit */
+                overflow-x: auto; /* Allow horizontal scroll if they truly don't fit */
+                justify-content: space-around; /* Distribute items more evenly */
+            }
+             /* Hide scrollbar for trade-info-header if it overflows */
+            .trade-info-header::-webkit-scrollbar { height: 0px; }
+            .trade-info-header { -ms-overflow-style: none; scrollbar-width: none; }
+
+            .info-box {
+                min-width: unset; /* Remove min-width to allow shrinking */
+                flex-shrink: 0; /* Allow shrinking if necessary */
+            }
+            .info-box .label { font-size: 10px; }
+            .info-box .value { font-size: 12px; }
+
+            .trade-control-box { 
+                margin-bottom: 10px; 
+                padding-top: 5px; /* Add slight padding to separate */
+            }
+            .trade-control-box label { font-size: 12px; margin-bottom: 5px; }
+            .input-group { height: 35px; } /* Slightly smaller input group */
+            .btn-adjust { width: 35px; height: 35px; font-size: 18px; }
+            .input-group input { font-size: 14px; }
+
+            .payout-summary {
+                padding: 8px;
+                margin-bottom: 10px;
+                font-size: 12px;
+            }
+            .payout-percent { font-size: 10px; }
+
+            #trade-notification-box {
+                height: auto; /* Allow height to be flexible */
+                flex-grow: 1; /* Take up remaining space */
+                max-height: 150px; /* Limit height to prevent taking too much space */
+                margin-bottom: 10px; /* Reduce margin */
+            }
+            .trade-notification-item {
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+
+            .majority-opinion { 
+                margin-top: unset; /* Remove auto margin to position explicitly */
+                order: 1; /* Set order to position it relative to other items */
+                padding-top: 10px; /* Space from above */
+            }
+            .majority-opinion label { font-size: 12px; }
+            .opinion-bar { height: 20px; }
+
+            .action-button {
+                height: 45px; /* Slightly smaller buttons */
+                font-size: 20px;
+                margin-top: 10px; /* Reduce margin */
+                margin-bottom: 0px; /* Remove bottom margin */
+                order: 2; /* Set order to position it relative to other items */
+            }
+            .action-button.up { margin-bottom: 5px; } /* Small space between up/down */
+        }
+        
+        /* Specific adjustments for very small screens if needed */
+        @media (max-width: 600px) and (orientation: landscape) {
+            .left-toolbar { width: 0; display: none; } /* Hide left toolbar to save space */
+            .main-header { padding: 5px; }
+            .asset-selector span { font-size: 12px; }
+            .asset-selector .fa-coins { margin-right: 5px; }
+            .right-panel { width: 180px; padding: 5px; }
+            .trade-info-header .info-box { font-size: 10px; }
+            .trade-control-box label { font-size: 10px; }
+            .input-group input { font-size: 12px; }
+            .action-button { font-size: 18px; height: 40px; }
+            #trade-notification-box { max-height: 100px; } /* Even smaller notif box */
         }
     </style>
 </head>
@@ -356,15 +524,12 @@
         window.onload = function() {
             // --- CONSTANTS & VARIABLES ---
             const PAYOUT_RATE = 0.83;
-            // Updated INITIAL_BALANCE to 1 Miliar (1.000.000.000)
             const INITIAL_BALANCE = 1000000000; 
-            // Added 15 seconds to TRADE_DURATIONS
             const TRADE_DURATIONS = [15, 30, 60, 300]; 
-            // Default currentDurationIndex to 1 (30 seconds)
             let currentDurationIndex = 1; 
-            const CANDLE_INTERVAL = 5000; // New candle every 5 seconds
-            const MAX_ACTIVE_BETS = 10; // Maximum number of active bets
-            const MAX_NOTIFICATION_ITEMS = 10; // Max items in the scrolling notification box
+            const CANDLE_INTERVAL = 5000; 
+            const MAX_ACTIVE_BETS = 10; 
+            const MAX_NOTIFICATION_ITEMS = 10; 
 
             let userBalance = INITIAL_BALANCE;
             let activeTrades = []; 
@@ -378,19 +543,18 @@
             const svgNS = "http://www.w3.org/2000/svg"; 
             const CHART_HEIGHT = 500; 
             const CHART_WIDTH = 1200; 
-            const MIN_PRICE = 49500;  // Original MIN_PRICE for candle mapping
-            const MAX_PRICE = 50500;  // Original MAX_PRICE for candle mapping
+            const MIN_PRICE = 49500;  
+            const MAX_PRICE = 50500;  
             const VOLATILITY = 40;    
             const CANDLE_WIDTH = 10;
             const CANDLE_MARGIN = 2;
             const TOTAL_CANDLE_WIDTH = CANDLE_WIDTH + CANDLE_MARGIN;
-            const INITIAL_CANDLE_COUNT = Math.floor(CHART_WIDTH / TOTAL_CANDLE_WIDTH) * 2; // Twice visible width for initial pan freedom
+            const INITIAL_CANDLE_COUNT = Math.floor(CHART_WIDTH / TOTAL_CANDLE_WIDTH) * 2; 
 
             // --- Variables for Chart Panning ---
             let isDragging = false;
             let startDragClientX;
             let startDragClientY;
-            // currentViewBox: [minX, minY, width, height] of the currently visible SVG area
             const initialYCenterSvg = mapPriceToY(currentPrice); 
             const initialViewBoxY = initialYCenterSvg - (CHART_HEIGHT / 2); 
             let currentViewBox = [0, initialViewBoxY, CHART_WIDTH, CHART_HEIGHT]; 
@@ -415,18 +579,16 @@
             
             // Formats a number with dots as thousands separators (e.g., 14000 -> 14.000)
             function formatNumberWithDots(num) {
-                // Ensure num is a valid number, default to 0 if not
                 const number = typeof num === 'number' && !isNaN(num) ? num : 0;
                 return new Intl.NumberFormat('id-ID').format(Math.round(number));
             }
 
             // Parses a formatted number string (e.g., "14.000") back to a float (e.g., 14000)
             function parseFormattedNumber(str) {
-                if (typeof str !== 'string') return str; // Return as is if not a string
-                // Remove all dots from the string before parsing
+                if (typeof str !== 'string') return str; 
                 const cleanedStr = str.replace(/\./g, '');
                 const parsed = parseFloat(cleanedStr);
-                return isNaN(parsed) ? 0 : parsed; // Return 0 if parsing results in NaN
+                return isNaN(parsed) ? 0 : parsed; 
             }
 
             // Formats a number as currency (e.g., 14000 -> Rp 14.000)
@@ -437,10 +599,8 @@
             // --- CORE CHART FUNCTIONS ---
             
             // Maps a price value to a Y-coordinate on the SVG chart.
-            // This mapping is fixed relative to MIN_PRICE and MAX_PRICE.
             function mapPriceToY(price) {
                 const priceRange = MAX_PRICE - MIN_PRICE;
-                // Ensure price is within the defined MIN_PRICE and MAX_PRICE before mapping
                 const clampedPrice = Math.max(MIN_PRICE, Math.min(MAX_PRICE, price));
                 const percentage = (clampedPrice - MIN_PRICE) / priceRange;
                 return CHART_HEIGHT - (percentage * CHART_HEIGHT); 
@@ -448,25 +608,21 @@
             
             // Renders all candlesticks on the SVG chart
             function renderChart() {
-                // Clear only candle elements, keep bet indicators as they are managed separately
                 const elementsToRemove = Array.from(svgChart.children).filter(el => 
                     !el.classList.contains('bet-candle-dot') &&
                     !el.classList.contains('bet-label-group')
                 );
                 elementsToRemove.forEach(el => el.remove());
 
-                // Iterate through candle data history and render only those visible in the current viewBox
                 candleDataHistory.forEach((data, i) => {
                     const candleXPosition = i * TOTAL_CANDLE_WIDTH;
 
-                    // Check if the candle's X range is within the visible viewBox X range
                     if (candleXPosition + TOTAL_CANDLE_WIDTH > currentViewBox[0] && 
                         candleXPosition < currentViewBox[0] + currentViewBox[2]) {
                         
                         const isUp = data.close >= data.open;
                         const color = isUp ? 'var(--color-green)' : 'var(--color-red)';
 
-                        // Draw Wick (vertical line)
                         const wick = document.createElementNS(svgNS, 'rect');
                         wick.setAttribute('x', candleXPosition + (CANDLE_WIDTH / 2 - 1));
                         wick.setAttribute('y', mapPriceToY(data.high));
@@ -475,21 +631,18 @@
                         wick.setAttribute('fill', color);
                         svgChart.appendChild(wick);
 
-                        // Draw Body (rectangle)
                         const body = document.createElementNS(svgNS, 'rect');
                         body.setAttribute('x', candleXPosition);
                         body.setAttribute('y', mapPriceToY(Math.max(data.open, data.close)));
                         body.setAttribute('width', CANDLE_WIDTH);
-                        body.setAttribute('height', Math.abs(mapPriceToY(data.open) - mapPriceToY(data.close)) || 1); // Min height 1px
+                        body.setAttribute('height', Math.abs(mapPriceToY(data.open) - mapPriceToY(data.close)) || 1); 
                         body.setAttribute('fill', color);
                         svgChart.appendChild(body);
                     }
                 });
 
-                // Set the SVG viewBox based on current pan position
                 svgChart.setAttribute('viewBox', currentViewBox.join(' '));
 
-                // Always re-render bet indicators after chart redraw (their positions depend on viewBox)
                 renderBetIndicators(); 
             }
 
@@ -500,9 +653,8 @@
                 let high = open;
                 let low = open;
 
-                for (let i = 0; i < 10; i++) { // Generate 10 micro-steps for price change
+                for (let i = 0; i < 10; i++) { 
                     price += (Math.random() - 0.5) * VOLATILITY;
-                    // Clamp price within the fixed MIN_PRICE and MAX_PRICE bounds
                     price = Math.max(MIN_PRICE, Math.min(MAX_PRICE, price)); 
                     high = Math.max(high, price);
                     low = Math.min(low, price);
@@ -513,9 +665,6 @@
 
                 currentPrice = price; 
                 candleDataHistory.push({ open, high, low, close: currentPrice });
-
-                // No auto-scroll of viewBox here for "infinite" pan.
-                // New candles will simply extend the history to the right.
                 
                 renderChart(); 
             }
@@ -525,10 +674,7 @@
                 for (let i = 0; i < INITIAL_CANDLE_COUNT; i++) { 
                     generateCandleData(); 
                 }
-                // Initial viewBox X: show the most recent candles, so the right edge of viewbox
-                // aligns with the rightmost candle.
                 currentViewBox[0] = (candleDataHistory.length * TOTAL_CANDLE_WIDTH) - CHART_WIDTH;
-                // Ensure it doesn't go negative if INITIAL_CANDLE_COUNT is small
                 currentViewBox[0] = Math.max(0, currentViewBox[0]); 
                 
                 lastCandleTime = Date.now(); 
@@ -547,10 +693,8 @@
                 checkCompletedTrades();
                 updateAllDisplays(); 
                 
-                // Update position of the current price indicator (HTML element)
                 const chartHeightPx = chartContainer.clientHeight;
                 const priceYInViewBox = mapPriceToY(currentPrice);
-                // Convert SVG Y-coordinate to client pixel Y-coordinate considering current pan
                 const normalizedY = (priceYInViewBox - currentViewBox[1]) / currentViewBox[3]; 
                 const yPosPx = normalizedY * chartHeightPx;
 
@@ -559,13 +703,12 @@
                 priceLabel.style.top = `${yPosPx}px`;
                 priceLabel.textContent = Math.round(currentPrice);
 
-                updateBetIndicatorsPositions(); // Update positions for dots/labels
+                updateBetIndicatorsPositions(); 
                 updateNotificationCountdowns(); 
             }
             
             // Handles placing a new trade
             function openTrade(direction) {
-                // Get the current investment amount, properly parsed (removing dots)
                 const investment = parseFormattedNumber(investmentInput.value); 
 
                 if (activeTrades.length >= MAX_ACTIVE_BETS) {
@@ -573,7 +716,6 @@
                     return;
                 }
 
-                // Check for minimum investment after parsing
                 if (isNaN(investment) || investment < 14000) { showNotification("Investasi minimum Rp 14.000", 'loss'); return; }
                 if (investment > userBalance) { showNotification("Saldo tidak cukup", 'loss'); return; }
 
@@ -597,8 +739,8 @@
                 activeTrades.push(newTrade);
 
                 addTradeNotification(newTrade); 
-                renderBetIndicators(); // Re-render to show new bet indicator on chart
-                updateAllDisplays(); // Update balance and button states immediately after placing bet
+                renderBetIndicators(); 
+                updateAllDisplays(); 
             }
 
             // Checks for and processes completed trades
@@ -633,11 +775,9 @@
                     
                     showNotification(status, amount);
 
-                    // Remove SVG elements for completed trades
                     if (trade.dotElement) trade.dotElement.remove(); 
                     if (trade.labelGroupElement) trade.labelGroupElement.remove(); 
 
-                    // Update notification item on completion
                     if (trade.notificationElement) {
                         trade.notificationElement.classList.add('completed');
                         trade.notificationElement.classList.remove('up', 'down'); 
@@ -658,23 +798,19 @@
                 });
                 tradeNotifications = tradeNotifications.filter(tn => activeTrades.includes(tn) || tn.completed);
                 renderTradeNotifications(); 
-                updateAllDisplays(); // Update balance and button states after trade completion
+                updateAllDisplays(); 
             }
 
             // Renders/updates all active trade indicators on the SVG chart
             function renderBetIndicators() {
-                // Remove all existing bet indicator SVG elements
                 svgChart.querySelectorAll('.bet-candle-dot, .bet-label-group').forEach(el => el.remove());
 
                 activeTrades.forEach(trade => {
-                    // Only render if the candle associated with the trade is in history
                     if (trade.candleIndex !== undefined && candleDataHistory[trade.candleIndex]) {
-                        const candleData = candleDataHistory[trade.candleIndex];
                         const candleX = trade.candleIndex * TOTAL_CANDLE_WIDTH;
                         const dotX = candleX + (CANDLE_WIDTH / 2);
                         const dotY = mapPriceToY(trade.startPrice);
 
-                        // Condition to render dot/label only if it's within the visible portion of the chart
                         const labelApproxWidth = 80; 
                         const labelApproxHeight = 20;
 
@@ -697,7 +833,7 @@
                             trade.labelGroupElement = labelGroup;
 
                             let labelBg = document.createElementNS(svgNS, 'rect');
-                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`); // Set class for color based on direction
+                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`); // Set class for color
                             labelGroup.appendChild(labelBg);
                             trade.labelBgElement = labelBg;
 
@@ -709,7 +845,6 @@
                             // Set text to only nominal amount
                             labelText.textContent = formatCurrency(trade.investment); 
                             
-                            // Get actual text dimensions for background rect
                             const textBBox = labelText.getBBox(); 
 
                             const labelXOffset = 5; 
@@ -723,7 +858,6 @@
                             labelText.setAttribute('x', dotX + labelXOffset + 5); 
                             labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2); 
                         } else {
-                            // If indicators are outside view, ensure their elements are null so they are not processed
                             if (trade.dotElement) { trade.dotElement.remove(); trade.dotElement = null; }
                             if (trade.labelGroupElement) { trade.labelGroupElement.remove(); trade.labelGroupElement = null; }
                             trade.labelBgElement = null;
@@ -736,7 +870,6 @@
             // Updates positions and text content of bet indicators for those currently rendered
             function updateBetIndicatorsPositions() {
                 activeTrades.forEach(trade => {
-                    // Only update if elements exist (i.e., they are currently rendered)
                     if (trade.dotElement && trade.labelGroupElement && trade.labelTextElement && trade.labelBgElement) {
                         const candleX = trade.candleIndex * TOTAL_CANDLE_WIDTH;
                         const dotX = candleX + (CANDLE_WIDTH / 2);
@@ -745,7 +878,6 @@
                         trade.dotElement.setAttribute('cx', dotX);
                         trade.dotElement.setAttribute('cy', dotY);
 
-                        // Update label text to only nominal amount (no countdown)
                         trade.labelTextElement.textContent = formatCurrency(trade.investment);
 
                         const textBBox = trade.labelTextElement.getBBox(); 
@@ -790,7 +922,7 @@
                         item.innerHTML = `
                             <div class="info">
                                 <i class="fa-solid fa-arrow-${trade.direction}"></i>
-                                <span>Rp ${formatCurrency(trade.investment)}</span>
+                                <span>Rp ${formatNumberWithDots(trade.investment)}</span>
                             </div>
                             <span class="time-left">${formatTime(trade.duration)}</span>
                         `;
@@ -802,11 +934,11 @@
                         item.classList.remove('up', 'down'); 
                         item.classList.add(trade.status); 
                         item.querySelector('.time-left').textContent = trade.status.toUpperCase(); 
-                        item.querySelector('.info span:last-child').textContent = formatCurrency(trade.finalAmount); 
+                        item.querySelector('.info span:last-child').textContent = formatNumberWithDots(trade.finalAmount); 
                     } else {
                         item.classList.remove('completed', 'win', 'loss');
                         item.classList.add(trade.direction); 
-                        item.querySelector('.info span:last-child').textContent = formatCurrency(trade.investment);
+                        item.querySelector('.info span:last-child').textContent = formatNumberWithDots(trade.investment);
                         item.querySelector('.time-left').textContent = formatTime(Math.max(0, Math.round((trade.expiryTime - Date.now()) / 1000)));
                     }
                     
@@ -911,13 +1043,11 @@
             // --- EVENT LISTENERS ---
             document.getElementById('investment-plus').addEventListener('click', () => {
                 let value = parseFormattedNumber(investmentInput.value);
-                // Ensure value is a number and add 14000
                 investmentInput.value = formatNumberWithDots((value || 0) + 14000); 
                 updateAllDisplays();
             });
             document.getElementById('investment-minus').addEventListener('click', () => {
                 let value = parseFormattedNumber(investmentInput.value);
-                // Ensure value is a number and subtract 14000, min 14000
                 investmentInput.value = formatNumberWithDots(Math.max(14000, (value || 0) - 14000)); 
                 updateAllDisplays();
             });
