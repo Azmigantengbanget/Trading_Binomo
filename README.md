@@ -77,7 +77,7 @@
             flex-direction: column;
             min-width: 0;
             height: 100vh; /* Make main content full height */
-            flex-grow: 1; /* Allow to grow */
+            flex-grow: 1;
         }
         .main-header {
             display: flex; align-items: center; padding: 10px 20px;
@@ -114,7 +114,7 @@
             flex: 1;
             position: relative;
             background-color: var(--bg-dark);
-            overflow: hidden; /* Chart pan is handled by SVG viewBox, not CSS overflow */
+            overflow: hidden; /* Chart pan/zoom is handled by SVG viewBox */
             border-left: 1px solid var(--border-color);
             cursor: grab;
             touch-action: none; /* Prevent browser touch gestures on chart area for independent pan/zoom */
@@ -199,7 +199,7 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            /* overflow-y: auto; Handled by platform scroll */
+            height: 100vh; /* Full height on desktop */
         }
 
         .trade-info-header {
@@ -279,11 +279,11 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             height: 180px; /* Fixed height for desktop */
-            overflow-y: auto; /* Allows scrolling for notification items */
+            overflow-y: auto;
             margin-top: 15px;
             padding: 5px;
             display: flex;
-            flex-direction: column-reverse; /* New items appear at bottom */
+            flex-direction: column-reverse;
             gap: 5px;
             font-size: 12px;
             color: var(--text-primary);
@@ -341,19 +341,19 @@
         @media (max-width: 1024px) and (orientation: landscape) {
             body {
                 font-size: 12px;
-                overflow: hidden; /* Hide body scroll if platform handles it */
+                overflow: hidden; /* Prevent body scroll, platform handles it */
             }
             .trading-platform {
                 flex-direction: row;
                 height: 100vh; /* Set platform to full viewport height */
-                overflow-y: hidden; /* Prevent platform from scrolling itself */
+                overflow-y: hidden; /* Platform does not scroll itself */
                 overflow-x: hidden;
                 align-items: stretch; /* Stretch children to fill available height */
             }
             .left-toolbar {
                 width: 40px;
                 padding-top: 5px;
-                height: 100%; /* Take full height of platform */
+                height: 100%;
             }
             .toolbar-item {
                 font-size: 16px;
@@ -361,7 +361,7 @@
             }
             .main-content {
                 height: 100%; /* Take full height of platform */
-                flex-grow: 1; /* Allow it to grow */
+                flex-grow: 1;
             }
             .main-header {
                 padding: 5px 8px;
@@ -381,11 +381,17 @@
             .balance { font-size: 12px; }
             .deposit-button { padding: 4px 8px; font-size: 10px; margin-left: 8px; }
 
-            /* New layout for right panel in landscape */
+            .main-footer {
+                padding: 4px 8px;
+                font-size: 10px;
+                border-left: none;
+                flex-shrink: 0;
+            }
+
             .right-panel {
-                width: 180px; /* Narrower width for mobile landscape */
+                width: 180px;
                 padding: 8px;
-                border-left: none; /* No left border */
+                border-left: none;
                 flex-direction: column;
                 flex-shrink: 0;
                 height: 100%; /* Take full height of platform */
@@ -409,16 +415,16 @@
             .trade-info-header {
                 margin-bottom: 8px;
                 padding-bottom: 8px;
-                flex-wrap: wrap; /* Allow wrapping */
+                flex-wrap: wrap;
                 gap: 3px;
                 justify-content: space-between;
                 border-bottom: 1px solid var(--border-color);
                 flex-shrink: 0;
-                order: 1; /* Default order */
+                order: 1;
             }
             .info-box {
                 min-width: unset;
-                flex-basis: 48%; /* Try to fit two per line */
+                flex-basis: 48%;
             }
             .info-box .label { font-size: 9px; }
             .info-box .value { font-size: 11px; }
@@ -427,7 +433,7 @@
                 margin-bottom: 8px;
                 padding-top: 5px;
                 flex-shrink: 0;
-                order: 2; /* Default order */
+                order: 2;
             }
             .trade-control-box label { font-size: 11px; margin-bottom: 4px; }
             .input-group { height: 30px; }
@@ -440,17 +446,17 @@
                 margin-bottom: 8px;
                 font-size: 11px;
                 flex-shrink: 0;
-                order: 3; /* Default order */
+                order: 3;
             }
 
-            /* --- Key layout change for mobile landscape --- */
+            /* --- Key layout change for mobile landscape to align buttons at bottom --- */
             #trade-notification-box {
-                height: auto; /* Allow notification box to grow/shrink based on content */
-                max-height: 120px; /* Max height to leave space for other elements */
+                height: auto;
+                max-height: unset; /* Remove max-height to allow full flexible grow */
                 margin-top: 8px;
                 margin-bottom: 8px;
-                flex-grow: 1; /* Allow to take available space */
-                flex-shrink: 1; /* Allow shrinking */
+                flex-grow: 1; /* Allow to take ALL available space */
+                flex-shrink: 1;
                 order: 4; /* Place below payout summary */
             }
             .trade-notification-item {
@@ -460,7 +466,7 @@
 
             .majority-opinion {
                 padding-top: 8px;
-                margin-bottom: 8px; /* Maintain some space */
+                margin-bottom: 8px;
                 flex-shrink: 0;
                 order: 5; /* Place below notification box */
             }
@@ -471,20 +477,11 @@
                 height: 40px;
                 font-size: 18px;
                 margin-top: 5px;
-                margin-bottom: 0; /* Remove bottom margin for the absolute last element */
+                margin-bottom: 0;
                 flex-shrink: 0;
                 order: 6; /* Place at the very bottom */
             }
-            .action-button.up { margin-bottom: 5px; } /* Small space between up/down */
-
-            /* Ensure main-footer aligns with bottom of right-panel */
-            .main-footer {
-                align-self: flex-end; /* Align to the bottom of main-content */
-                width: 100%; /* Take full width */
-                border-bottom: none; /* No bottom border needed */
-                border-top: 1px solid var(--border-color); /* Maintain top border */
-                padding: 5px 10px; /* Adjust padding */
-            }
+            .action-button.up { margin-bottom: 5px; }
         }
         /* Further adjustments for extremely small mobile screens (e.g., iPhone SE landscape) */
         @media (max-width: 500px) and (orientation: landscape) {
@@ -608,15 +605,14 @@
 
             // --- Variables for Chart Panning and Zooming ---
             let isDragging = false;
-            let pointers = new Map(); // Store active pointers for multi-touch (zoom)
-            let initialViewBox = [0, 0, CHART_WIDTH, CHART_HEIGHT]; // Store the original viewBox for scaling
-            let currentViewBox = [0, 0, CHART_WIDTH, CHART_HEIGHT]; // [minX, minY, width, height] of the currently visible SVG area
-            
-            // Initialize currentViewBox to center around currentPrice vertically and show recent candles horizontally
+            let lastPointers = new Map(); // Store active pointers for multi-touch (zoom)
+            let initialPointers = new Map(); // Store initial positions for reference
+            let initialViewBoxOnZoom = [0, 0, 0, 0]; // Store viewBox state at start of zoom
+
+
+            // currentViewBox: [minX, minY, width, height] of the currently visible SVG area
             const initialYCenterSvg = mapPriceToY(currentPrice);
-            currentViewBox[1] = initialYCenterSvg - (CHART_HEIGHT / 2); // Center the viewbox vertically
-            currentViewBox[0] = (INITIAL_CANDLE_COUNT * TOTAL_CANDLE_WIDTH) - CHART_WIDTH; // Show rightmost candles
-            currentViewBox[0] = Math.max(0, currentViewBox[0]); // Ensure not negative
+            let currentViewBox = [0, initialYCenterSvg - (CHART_HEIGHT / 2), CHART_WIDTH, CHART_HEIGHT];
 
             // --- DOM Elements ---
             const notification = document.getElementById('notification');
@@ -636,13 +632,11 @@
 
             // --- HELPER FUNCTIONS FOR NUMBER FORMATTING AND PARSING ---
 
-            // Formats a number with dots as thousands separators (e.g., 14000 -> 14.000)
             function formatNumberWithDots(num) {
                 const number = typeof num === 'number' && !isNaN(num) ? num : 0;
                 return new Intl.NumberFormat('id-ID').format(Math.round(number));
             }
 
-            // Parses a formatted number string (e.g., "14.000") back to a float (e.g., 14000)
             function parseFormattedNumber(str) {
                 if (typeof str !== 'string') return str;
                 const cleanedStr = str.replace(/\./g, '');
@@ -650,14 +644,12 @@
                 return isNaN(parsed) ? 0 : parsed;
             }
 
-            // Formats a number as currency (e.g., 14000 -> Rp 14.000)
             function formatCurrency(amount) {
                 return `Rp ${formatNumberWithDots(amount)}`;
             }
 
             // --- CORE CHART FUNCTIONS ---
 
-            // Maps a price value to a Y-coordinate on the SVG chart.
             function mapPriceToY(price) {
                 const priceRange = MAX_PRICE - MIN_PRICE;
                 const clampedPrice = Math.max(MIN_PRICE, Math.min(MAX_PRICE, price));
@@ -665,7 +657,6 @@
                 return CHART_HEIGHT - (percentage * CHART_HEIGHT);
             }
 
-            // Renders all candlesticks on the SVG chart
             function renderChart() {
                 const elementsToRemove = Array.from(svgChart.children).filter(el =>
                     !el.classList.contains('bet-candle-dot') &&
@@ -705,7 +696,6 @@
                 renderBetIndicators();
             }
 
-            // Generates a new candlestick data point and adds it to history
             function generateCandleData() {
                 const open = candleDataHistory.length > 0 ? candleDataHistory[candleDataHistory.length - 1].close : currentPrice;
                 let price = open;
@@ -728,14 +718,11 @@
                 renderChart();
             }
 
-            // Fills the chart with initial candles to avoid empty space
             function prefillChartWithCandles() {
                 for (let i = 0; i < INITIAL_CANDLE_COUNT; i++) {
                     generateCandleData();
                 }
-                currentViewBox[0] = (candleDataHistory.length * TOTAL_CANDLE_WIDTH) - CHART_WIDTH;
-                currentViewBox[0] = Math.max(0, currentViewBox[0]);
-
+                // No auto-scroll here in prefill, let user pan
                 lastCandleTime = Date.now();
                 renderChart();
             }
@@ -766,7 +753,6 @@
                 updateNotificationCountdowns();
             }
 
-            // Handles placing a new trade
             function openTrade(direction) {
                 const investment = parseFormattedNumber(investmentInput.value);
 
@@ -802,7 +788,6 @@
                 updateAllDisplays();
             }
 
-            // Checks for and processes completed trades
             function checkCompletedTrades() {
                 const now = Date.now();
                 const completedTrades = [];
@@ -843,7 +828,7 @@
                         if (status === 'win') {
                             trade.notificationElement.classList.add('win');
                         } else {
-                            trade.notificationElement.classList.add('loss');
+                            trade.notification.classList.add('loss');
                         }
                         const infoSpan = trade.notificationElement.querySelector('.info span:last-child');
                         if (infoSpan) {
@@ -860,7 +845,6 @@
                 updateAllDisplays();
             }
 
-            // Renders/updates all active trade indicators on the SVG chart
             function renderBetIndicators() {
                 svgChart.querySelectorAll('.bet-candle-dot, .bet-label-group').forEach(el => el.remove());
 
@@ -925,7 +909,6 @@
                 });
             }
 
-            // Updates positions and text content of bet indicators for those currently rendered
             function updateBetIndicatorsPositions() {
                 activeTrades.forEach(trade => {
                     if (trade.dotElement && trade.labelGroupElement && trade.labelTextElement && trade.labelBgElement) {
@@ -1131,25 +1114,46 @@
 
             // --- Chart Panning & Zooming Event Listeners (using pointer events for better touch support) ---
             let lastPointers = new Map(); // Store active pointers for multi-touch (zoom)
+            let initialPointers = new Map(); // Store initial positions for reference on zoom start
+            let initialViewBoxOnZoom = [0, 0, 0, 0]; // Store viewBox state at start of zoom
 
             chartContainer.addEventListener('pointerdown', (e) => {
                 isDragging = true;
-                e.preventDefault(); // Prevent default touch actions like scrolling/zooming
-                chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag
+                e.preventDefault(); // Prevent default browser gestures (like scrolling)
+                chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag/zoom
                 lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+
+                if (lastPointers.size === 2) { // Start of a two-finger gesture
+                    initialViewBoxOnZoom = [...currentViewBox]; // Save current viewBox state
+                    let p1 = null, p2 = null;
+                    let i = 0;
+                    for (let [id, pos] of lastPointers) {
+                        if (i === 0) p1 = pos;
+                        else p2 = pos;
+                        i++;
+                    }
+                    if (p1 && p2) {
+                        initialPointers.set(p1.clientX, p1.clientY); // Store initial positions for later calculations
+                        initialPointers.set(p2.clientX, p2.clientY);
+                    }
+                }
             });
 
             chartContainer.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
-
-                const currentPointer = { clientX: e.clientX, clientY: e.clientY };
-                const prevPointer = lastPointers.get(e.pointerId);
-                if (!prevPointer) return; // Should not happen
-
+                
                 // Update current pointer position in the map
-                lastPointers.set(e.pointerId, currentPointer);
+                lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
                 if (lastPointers.size === 1) { // Single finger drag (Pan)
+                    // Get current pointer position
+                    const currentPointer = lastPointers.get(e.pointerId);
+                    // Get previous pointer position for delta calculation
+                    const prevPointer = { 
+                        clientX: e.clientX - (e.movementX || 0), // Use movementX/Y for more accurate delta if available
+                        clientY: e.clientY - (e.movementY || 0)
+                    }; 
+
                     const deltaClientX = currentPointer.clientX - prevPointer.clientX;
                     const deltaClientY = currentPointer.clientY - prevPointer.clientY;
 
@@ -1173,28 +1177,34 @@
                     }
                     if (!p1 || !p2) return;
 
-                    // Calculate old and new distances between fingers
-                    const oldDistance = Math.hypot(p1.clientX - prevPointer.clientX, p1.clientY - prevPointer.clientY); // This is not quite right, should be distance between two current fingers
-                    const newDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+                    // Calculate current distance between fingers
+                    const currentDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
                     
-                    if (oldDistance === 0) return; // Avoid division by zero
+                    // To calculate zoom factor, we need initial distance from the start of the two-finger gesture
+                    // This is where initialPointers map comes in
+                    const initialDistance = Math.hypot(initialPointers.get(p1.clientX) - initialPointers.get(p2.clientX), initialPointers.get(p1.clientY) - initialPointers.get(p2.clientY));
+                    
+                    const zoomFactor = currentDistance / initialDistance;
 
-                    const zoomFactor = newDistance / oldDistance;
+                    // Clamp zoom factor to avoid extreme zoom levels
+                    const minZoomFactor = 0.1; // Minimum zoom level (10x zoom out)
+                    const maxZoomFactor = 10; // Maximum zoom level (10x zoom in)
+                    const clampedZoomFactor = Math.max(minZoomFactor, Math.min(maxZoomFactor, zoomFactor));
 
-                    // Calculate current center point of the two fingers in client coordinates
+                    // Calculate the center point of the two fingers in client coordinates
                     const clientCenterX = (p1.clientX + p2.clientX) / 2;
                     const clientCenterY = (p1.clientY + p2.clientY) / 2;
 
-                    // Convert client center to SVG coordinates
+                    // Convert client center to SVG coordinates (based on initialViewBox)
                     const svgRect = svgChart.getBoundingClientRect();
-                    const svgCenterX = currentViewBox[0] + (clientCenterX - svgRect.left) / svgRect.width * currentViewBox[2];
-                    const svgCenterY = currentViewBox[1] + (clientCenterY - svgRect.top) / svgRect.height * currentViewBox[3];
+                    const svgCenterX = initialViewBoxOnZoom[0] + (clientCenterX - svgRect.left) / svgRect.width * initialViewBoxOnZoom[2];
+                    const svgCenterY = initialViewBoxOnZoom[1] + (clientCenterY - svgRect.top) / svgRect.height * initialViewBoxOnZoom[3];
 
-                    // Apply zoom relative to the center
-                    currentViewBox[0] = svgCenterX - (currentViewBox[2] / zoomFactor / 2);
-                    currentViewBox[1] = svgCenterY - (currentViewBox[3] / zoomFactor / 2);
-                    currentViewBox[2] /= zoomFactor;
-                    currentViewBox[3] /= zoomFactor;
+                    // Apply zoom transformation around the SVG center point
+                    currentViewBox[2] = initialViewBoxOnZoom[2] / clampedZoomFactor; // New width
+                    currentViewBox[3] = initialViewBoxOnZoom[3] / clampedZoomFactor; // New height
+                    currentViewBox[0] = svgCenterX - (currentViewBox[2] / 2); // New X (adjusted for center)
+                    currentViewBox[1] = svgCenterY - (currentViewBox[3] / 2); // New Y (adjusted for center)
                 }
 
                 renderChart();
@@ -1205,6 +1215,7 @@
                 if (lastPointers.size === 0) {
                     isDragging = false;
                     chartContainer.classList.remove('dragging');
+                    initialPointers.clear(); // Clear initial pointers for next zoom
                 }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
@@ -1214,6 +1225,7 @@
                 if (lastPointers.size === 0) {
                     isDragging = false;
                     chartContainer.classList.remove('dragging');
+                    initialPointers.clear();
                 }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
