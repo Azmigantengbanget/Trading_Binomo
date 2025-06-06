@@ -324,7 +324,7 @@
                 <label>Jumlah</label>
                 <div class="input-group">
                     <button id="investment-minus" class="btn-adjust">-</button><span class="currency-symbol">Rp</span>
-                    <input type="text" id="investment-amount" value="14000"><button id="investment-plus" class="btn-adjust">+</button>
+                    <input type="text" id="investment-amount" value="14.000"><button id="investment-plus" class="btn-adjust">+</button>
                 </div>
             </div>
             <div class="trade-control-box">
@@ -356,15 +356,18 @@
         window.onload = function() {
             // --- CONSTANTS & VARIABLES ---
             const PAYOUT_RATE = 0.83;
-            const INITIAL_BALANCE = 1000000000;
-            const TRADE_DURATIONS = [30, 60, 300];
+            // Updated INITIAL_BALANCE to 1 Miliar (1.000.000.000)
+            const INITIAL_BALANCE = 1000000000; 
+            // Added 15 seconds to TRADE_DURATIONS
+            const TRADE_DURATIONS = [15, 30, 60, 300]; 
+            // Default currentDurationIndex to 1 (30 seconds)
+            let currentDurationIndex = 1; 
             const CANDLE_INTERVAL = 5000; // New candle every 5 seconds
             const MAX_ACTIVE_BETS = 10; // Maximum number of active bets
             const MAX_NOTIFICATION_ITEMS = 10; // Max items in the scrolling notification box
 
             let userBalance = INITIAL_BALANCE;
             let activeTrades = []; 
-            let currentDurationIndex = 0;
             
             let candleDataHistory = [];
             let currentPrice = 50000; 
@@ -388,9 +391,8 @@
             let startDragClientX;
             let startDragClientY;
             // currentViewBox: [minX, minY, width, height] of the currently visible SVG area
-            // Initialize viewBox to show the full X width, and centered vertically around currentPrice
-            const initialYCenterSvg = mapPriceToY(currentPrice); // Y-coordinate of currentPrice
-            const initialViewBoxY = initialYCenterSvg - (CHART_HEIGHT / 2); // Center the viewbox
+            const initialYCenterSvg = mapPriceToY(currentPrice); 
+            const initialViewBoxY = initialYCenterSvg - (CHART_HEIGHT / 2); 
             let currentViewBox = [0, initialViewBoxY, CHART_WIDTH, CHART_HEIGHT]; 
 
             // --- DOM Elements ---
@@ -408,6 +410,29 @@
             const tradeNotificationBox = document.getElementById('trade-notification-box'); 
 
             let tradeNotifications = []; 
+
+            // --- HELPER FUNCTIONS FOR NUMBER FORMATTING AND PARSING ---
+            
+            // Formats a number with dots as thousands separators (e.g., 14000 -> 14.000)
+            function formatNumberWithDots(num) {
+                // Ensure num is a valid number, default to 0 if not
+                const number = typeof num === 'number' && !isNaN(num) ? num : 0;
+                return new Intl.NumberFormat('id-ID').format(Math.round(number));
+            }
+
+            // Parses a formatted number string (e.g., "14.000") back to a float (e.g., 14000)
+            function parseFormattedNumber(str) {
+                if (typeof str !== 'string') return str; // Return as is if not a string
+                // Remove all dots from the string before parsing
+                const cleanedStr = str.replace(/\./g, '');
+                const parsed = parseFloat(cleanedStr);
+                return isNaN(parsed) ? 0 : parsed; // Return 0 if parsing results in NaN
+            }
+
+            // Formats a number as currency (e.g., 14000 -> Rp 14.000)
+            function formatCurrency(amount) {
+                return `Rp ${formatNumberWithDots(amount)}`;
+            }
 
             // --- CORE CHART FUNCTIONS ---
             
@@ -435,8 +460,6 @@
                     const candleXPosition = i * TOTAL_CANDLE_WIDTH;
 
                     // Check if the candle's X range is within the visible viewBox X range
-                    // Note: We don't filter by Y range here for candles, as mapPriceToY already clamps.
-                    // If candles become flat, it means mapPriceToY is giving same Y for min/max
                     if (candleXPosition + TOTAL_CANDLE_WIDTH > currentViewBox[0] && 
                         candleXPosition < currentViewBox[0] + currentViewBox[2]) {
                         
@@ -542,12 +565,15 @@
             
             // Handles placing a new trade
             function openTrade(direction) {
+                // Get the current investment amount, properly parsed (removing dots)
+                const investment = parseFormattedNumber(investmentInput.value); 
+
                 if (activeTrades.length >= MAX_ACTIVE_BETS) {
                     showNotification(`Maksimal ${MAX_ACTIVE_BETS} taruhan aktif`, 'loss');
                     return;
                 }
 
-                const investment = parseFloat(investmentInput.value.replace(/,/g, ''));
+                // Check for minimum investment after parsing
                 if (isNaN(investment) || investment < 14000) { showNotification("Investasi minimum Rp 14.000", 'loss'); return; }
                 if (investment > userBalance) { showNotification("Saldo tidak cukup", 'loss'); return; }
 
@@ -572,6 +598,7 @@
 
                 addTradeNotification(newTrade); 
                 renderBetIndicators(); // Re-render to show new bet indicator on chart
+                updateAllDisplays(); // Update balance and button states immediately after placing bet
             }
 
             // Checks for and processes completed trades
@@ -631,6 +658,7 @@
                 });
                 tradeNotifications = tradeNotifications.filter(tn => activeTrades.includes(tn) || tn.completed);
                 renderTradeNotifications(); 
+                updateAllDisplays(); // Update balance and button states after trade completion
             }
 
             // Renders/updates all active trade indicators on the SVG chart
@@ -652,7 +680,7 @@
 
                         if (candleX + TOTAL_CANDLE_WIDTH > currentViewBox[0] && 
                             candleX < currentViewBox[0] + currentViewBox[2] &&
-                            dotY > currentViewBox[1] - labelApproxHeight && // Check if Y is within view + offset
+                            dotY > currentViewBox[1] - labelApproxHeight && 
                             dotY < currentViewBox[1] + currentViewBox[3] + labelApproxHeight) 
                         {
                             let dotElement = document.createElementNS(svgNS, 'circle');
@@ -669,7 +697,7 @@
                             trade.labelGroupElement = labelGroup;
 
                             let labelBg = document.createElementNS(svgNS, 'rect');
-                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`); // Set class for color
+                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`); // Set class for color based on direction
                             labelGroup.appendChild(labelBg);
                             trade.labelBgElement = labelBg;
 
@@ -696,8 +724,8 @@
                             labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2); 
                         } else {
                             // If indicators are outside view, ensure their elements are null so they are not processed
-                            trade.dotElement = null;
-                            trade.labelGroupElement = null;
+                            if (trade.dotElement) { trade.dotElement.remove(); trade.dotElement = null; }
+                            if (trade.labelGroupElement) { trade.labelGroupElement.remove(); trade.labelGroupElement = null; }
                             trade.labelBgElement = null;
                             trade.labelTextElement = null;
                         }
@@ -799,15 +827,20 @@
 
             // --- HELPER & DISPLAY UPDATE FUNCTIONS ---
             function updateAllDisplays() {
+                // Display user balance with proper formatting
                 balanceDisplay.textContent = formatCurrency(userBalance);
+                
                 document.getElementById('current-time').textContent = new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' }) + " GMT+7";
-                payoutPreview.textContent = formatCurrency((parseFloat(investmentInput.value.replace(/,/g, '')) || 0) * (1 + PAYOUT_RATE));
+                // Payout preview should also be formatted correctly
+                payoutPreview.textContent = formatCurrency((parseFormattedNumber(investmentInput.value) || 0) * (1 + PAYOUT_RATE));
                 
                 updateActiveTradeInfo();
 
-                const currentInvestment = parseFloat(investmentInput.value.replace(/,/g, '')) || 0;
-                btnUp.disabled = (currentInvestment > userBalance) || (activeTrades.length >= MAX_ACTIVE_BETS);
-                btnDown.disabled = (currentInvestment > userBalance) || (activeTrades.length >= MAX_ACTIVE_BETS);
+                // Get the current investment value, properly parsed (removing dots)
+                const currentInvestmentValue = parseFormattedNumber(investmentInput.value);
+
+                btnUp.disabled = (currentInvestmentValue <= 0) || (currentInvestmentValue > userBalance) || (activeTrades.length >= MAX_ACTIVE_BETS) || (currentInvestmentValue < 14000);
+                btnDown.disabled = (currentInvestmentValue <= 0) || (currentInvestmentValue > userBalance) || (activeTrades.length >= MAX_ACTIVE_BETS) || (currentInvestmentValue < 14000);
             }
 
             function updateActiveTradeInfo() {
@@ -842,14 +875,14 @@
                     }
                 });
 
-                activeInvDisp.textContent = formatCurrency(totalInvestment);
+                activeInvDisp.textContent = formatCurrency(totalInvestment); 
                 activeTimDisp.textContent = activeTrades.length > 0 ? formatTime(minRemainingTime) : "00:00";
 
                 activePayoutDisplay.classList.remove('profit', 'loss'); 
 
                 if (activeTrades.length > 0) {
                     if (hasProfitTrade) {
-                        activePayoutDisplay.textContent = formatCurrency(potentialProfit);
+                        activePayoutDisplay.textContent = formatCurrency(potentialProfit); 
                         activePayoutDisplay.classList.add('profit');
                     } else {
                         activePayoutDisplay.textContent = formatCurrency(-potentialLoss); 
@@ -861,12 +894,13 @@
             }
 
             function showNotification(result, amount) {
-                notification.innerHTML = `<p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>`;
+                notification.innerHTML = `<p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>`; 
                 notification.className = result;
                 setTimeout(() => { notification.className = 'hidden'; }, 3000);
             }
+            // formatCurrency now only adds "Rp " prefix. Actual number formatting is done by formatNumberWithDots
             function formatCurrency(amount) {
-                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', signDisplay: 'never', minimumFractionDigits: 0 }).format(Math.abs(amount));
+                return `Rp ${formatNumberWithDots(amount)}`;
             }
             function formatTime(seconds) {
                 const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -876,13 +910,32 @@
 
             // --- EVENT LISTENERS ---
             document.getElementById('investment-plus').addEventListener('click', () => {
-                let value = parseFloat(investmentInput.value.replace(/,/g, '')) || 0;
-                investmentInput.value = value + 14000; updateAllDisplays();
+                let value = parseFormattedNumber(investmentInput.value);
+                // Ensure value is a number and add 14000
+                investmentInput.value = formatNumberWithDots((value || 0) + 14000); 
+                updateAllDisplays();
             });
             document.getElementById('investment-minus').addEventListener('click', () => {
-                let value = parseFloat(investmentInput.value.replace(/,/g, '')) || 0;
-                investmentInput.value = Math.max(14000, value - 14000); updateAllDisplays();
+                let value = parseFormattedNumber(investmentInput.value);
+                // Ensure value is a number and subtract 14000, min 14000
+                investmentInput.value = formatNumberWithDots(Math.max(14000, (value || 0) - 14000)); 
+                updateAllDisplays();
             });
+
+            // Format investment input on change/blur
+            investmentInput.addEventListener('change', (e) => {
+                let value = parseFormattedNumber(e.target.value); 
+                e.target.value = formatNumberWithDots(value);
+                updateAllDisplays();
+            });
+            investmentInput.addEventListener('blur', (e) => {
+                let value = parseFormattedNumber(e.target.value); 
+                e.target.value = formatNumberWithDots(value);
+                updateAllDisplays();
+            });
+            // Initial format for investment amount when page loads
+            investmentInput.value = formatNumberWithDots(parseFormattedNumber(investmentInput.value));
+
             document.getElementById('time-plus').addEventListener('click', () => {
                 currentDurationIndex = (currentDurationIndex + 1) % TRADE_DURATIONS.length;
                 timeInput.value = formatTime(TRADE_DURATIONS[currentDurationIndex]);
@@ -943,7 +996,7 @@
             svgChart.setAttribute('preserveAspectRatio', 'none'); 
 
             prefillChartWithCandles(); 
-            updateAllDisplays();
+            updateAllDisplays(); // Call once at start to set initial formatted balance and payout
             setInterval(mainLoop, 200); 
         };
     </script>
