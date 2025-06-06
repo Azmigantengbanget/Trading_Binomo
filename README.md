@@ -561,7 +561,7 @@
             </div>
 
             <div id="trade-notification-box">
-            </div>
+                </div>
 
             <div class="majority-opinion">
                 <label>Pendapat mayoritas</label>
@@ -607,10 +607,8 @@
 
             // --- Variables for Chart Panning and Zooming ---
             let isDragging = false;
-            let lastPointers = new Map(); // Store active pointers for multi-touch (zoom)
-            let initialPinchDistance = null;
-            let initialPinchCenter = { x: 0, y: 0 };
-            
+            let pointers = new Map(); // Store active pointers for multi-touch (zoom)
+            let initialViewBox = [0, 0, CHART_WIDTH, CHART_HEIGHT]; // Store the original viewBox for scaling
             let currentViewBox = [0, 0, CHART_WIDTH, CHART_HEIGHT]; // [minX, minY, width, height] of the currently visible SVG area
             
             // Initialize currentViewBox to center around currentPrice vertically and show recent candles horizontally
@@ -653,7 +651,7 @@
 
             // Formats a number as currency (e.g., 14000 -> Rp 14.000)
             function formatCurrency(amount) {
-                return `Rp ${formatNumberWithDots(amount)}`;
+                return Rp ${formatNumberWithDots(amount)};
             }
 
             // --- CORE CHART FUNCTIONS ---
@@ -758,9 +756,9 @@
                 const normalizedY = (priceYInViewBox - currentViewBox[1]) / currentViewBox[3];
                 const yPosPx = normalizedY * chartHeightPx;
 
-                priceIndicator.style.top = `${yPosPx}px`;
+                priceIndicator.style.top = ${yPosPx}px;
                 priceIndicator.style.width = chartContainer.clientWidth + 'px';
-                priceLabel.style.top = `${yPosPx}px`;
+                priceLabel.style.top = ${yPosPx}px;
                 priceLabel.textContent = Math.round(currentPrice);
 
                 updateBetIndicatorsPositions();
@@ -772,7 +770,7 @@
                 const investment = parseFormattedNumber(investmentInput.value);
 
                 if (activeTrades.length >= MAX_ACTIVE_BETS) {
-                    showNotification(`Maksimal ${MAX_ACTIVE_BETS} taruhan aktif`, 'loss');
+                    showNotification(Maksimal ${MAX_ACTIVE_BETS} taruhan aktif, 'loss');
                     return;
                 }
 
@@ -874,7 +872,6 @@
                         const labelApproxWidth = 80;
                         const labelApproxHeight = 20;
 
-                        // Only render if within the current viewBox to optimize performance
                         if (candleX + TOTAL_CANDLE_WIDTH > currentViewBox[0] &&
                             candleX < currentViewBox[0] + currentViewBox[2] &&
                             dotY > currentViewBox[1] - labelApproxHeight &&
@@ -894,7 +891,7 @@
                             trade.labelGroupElement = labelGroup;
 
                             let labelBg = document.createElementNS(svgNS, 'rect');
-                            labelBg.setAttribute('class', `bet-label-bg ${trade.direction}`);
+                            labelBg.setAttribute('class', bet-label-bg ${trade.direction});
                             labelGroup.appendChild(labelBg);
                             trade.labelBgElement = labelBg;
 
@@ -905,10 +902,10 @@
 
                             labelText.textContent = formatCurrency(trade.investment);
 
-                            const textBBox = labelText.getBBox(); // Get bounding box AFTER setting textContent
+                            const textBBox = labelText.getBBox();
 
                             const labelXOffset = 5;
-                            const labelYOffset = -(textBBox.height / 2) - 2;
+                            const labelYOffset = - (textBBox.height / 2) - 2;
 
                             labelBg.setAttribute('x', dotX + labelXOffset);
                             labelBg.setAttribute('y', dotY + labelYOffset);
@@ -918,7 +915,6 @@
                             labelText.setAttribute('x', dotX + labelXOffset + 5);
                             labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2);
                         } else {
-                            // If out of view, ensure elements are removed
                             if (trade.dotElement) { trade.dotElement.remove(); trade.dotElement = null; }
                             if (trade.labelGroupElement) { trade.labelGroupElement.remove(); trade.labelGroupElement = null; }
                             trade.labelBgElement = null;
@@ -936,25 +932,22 @@
                         const dotX = candleX + (CANDLE_WIDTH / 2);
                         const dotY = mapPriceToY(trade.startPrice);
 
-                        // Update dot position
                         trade.dotElement.setAttribute('cx', dotX);
                         trade.dotElement.setAttribute('cy', dotY);
 
-                        // Update label text (if it can change, e.g., countdown for bet)
-                        // For now, it's static investment, so no change needed unless business logic changes
-                        // trade.labelTextElement.textContent = formatCurrency(trade.investment); 
+                        trade.labelTextElement.textContent = formatCurrency(trade.investment);
 
-                        const textBBox = trade.labelTextElement.getBBox(); // Re-calculate in case content changes
+                        const textBBox = trade.labelTextElement.getBBox();
                         const labelXOffset = 5;
-                        const labelYOffset = -(textBBox.height / 2) - 2;
+                        const labelYOffset = - (textBBox.height / 2) - 2;
 
                         trade.labelBgElement.setAttribute('x', dotX + labelXOffset);
                         trade.labelBgElement.setAttribute('y', dotY + labelYOffset);
                         trade.labelBgElement.setAttribute('width', textBBox.width + 10);
                         trade.labelBgElement.setAttribute('height', textBBox.height + 4);
 
-                        trade.labelTextElement.setAttribute('x', dotX + labelXOffset + 5);
-                        trade.labelTextElement.setAttribute('y', dotY + labelYOffset + textBBox.height - 2);
+                        labelText.setAttribute('x', dotX + labelXOffset + 5);
+                        labelText.setAttribute('y', dotY + labelYOffset + textBBox.height - 2);
                     }
                 });
             }
@@ -967,9 +960,9 @@
                 if (tradeNotifications.length > MAX_NOTIFICATION_ITEMS) {
                     const oldestCompletedIndex = tradeNotifications.findIndex(tn => tn.completed);
                     if (oldestCompletedIndex !== -1) {
-                           tradeNotifications.splice(oldestCompletedIndex, 1);
+                         tradeNotifications.splice(oldestCompletedIndex, 1);
                     } else {
-                           tradeNotifications.shift();
+                         tradeNotifications.shift();
                     }
                 }
                 renderTradeNotifications();
@@ -982,7 +975,7 @@
                     let item = trade.notificationElement;
                     if (!item) {
                         item = document.createElement('div');
-                        item.className = `trade-notification-item ${trade.direction}`;
+                        item.className = trade-notification-item ${trade.direction};
                         item.innerHTML = `
                             <div class="info">
                                 <i class="fa-solid fa-arrow-${trade.direction}"></i>
@@ -998,11 +991,11 @@
                         item.classList.remove('up', 'down');
                         item.classList.add(trade.status);
                         item.querySelector('.time-left').textContent = trade.status.toUpperCase();
-                        item.querySelector('.info span:last-child').textContent = formatCurrency(trade.finalAmount);
+                        item.querySelector('.info span:last-child').textContent = formatNumberWithDots(trade.finalAmount);
                     } else {
                         item.classList.remove('completed', 'win', 'loss');
                         item.classList.add(trade.direction);
-                        item.querySelector('.info span:last-child').textContent = formatCurrency(trade.investment);
+                        item.querySelector('.info span:last-child').textContent = formatNumberWithDots(trade.investment);
                         item.querySelector('.time-left').textContent = formatTime(Math.max(0, Math.round((trade.expiryTime - Date.now()) / 1000)));
                     }
 
@@ -1087,14 +1080,14 @@
             }
 
             function showNotification(result, amount) {
-                notification.innerHTML = `<p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>`;
+                notification.innerHTML = <p>${result.toUpperCase()}</p><span>${formatCurrency(amount)}</span>;
                 notification.className = result;
                 setTimeout(() => { notification.className = 'hidden'; }, 3000);
             }
             function formatTime(seconds) {
                 const m = Math.floor(seconds / 60).toString().padStart(2, '0');
                 const s = (seconds % 60).toString().padStart(2, '0');
-                return `${m}:${s}`;
+                return ${m}:${s};
             }
 
             // --- EVENT LISTENERS ---
@@ -1136,42 +1129,26 @@
             btnDown.addEventListener('click', () => openTrade('down'));
 
             // --- Chart Panning & Zooming Event Listeners (using pointer events for better touch support) ---
+            let lastPointers = new Map(); // Store active pointers for multi-touch (zoom)
 
             chartContainer.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                e.preventDefault(); // Prevent default touch actions like scrolling/zooming
                 chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag
                 lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-
-                if (lastPointers.size === 1) {
-                    isDragging = true; // Only start dragging for single touch
-                    chartContainer.classList.add('dragging');
-                } else if (lastPointers.size === 2) {
-                    isDragging = false; // Disable dragging if a second touch is detected
-                    chartContainer.classList.remove('dragging');
-
-                    // Calculate initial pinch distance and center
-                    let p1 = null, p2 = null;
-                    let i = 0;
-                    for (let [id, pos] of lastPointers) {
-                        if (i === 0) p1 = pos;
-                        else p2 = pos;
-                        i++;
-                    }
-                    initialPinchDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
-                    initialPinchCenter.x = (p1.clientX + p2.clientX) / 2;
-                    initialPinchCenter.y = (p1.clientY + p2.clientY) / 2;
-                }
             });
 
             chartContainer.addEventListener('pointermove', (e) => {
-                if (!lastPointers.has(e.pointerId)) return; // Ensure the pointer is one we are tracking
+                if (!isDragging) return;
 
                 const currentPointer = { clientX: e.clientX, clientY: e.clientY };
-                lastPointers.set(e.pointerId, currentPointer); // Update current pointer position
+                const prevPointer = lastPointers.get(e.pointerId);
+                if (!prevPointer) return; // Should not happen
+
+                // Update current pointer position in the map
+                lastPointers.set(e.pointerId, currentPointer);
 
                 if (lastPointers.size === 1) { // Single finger drag (Pan)
-                    if (!isDragging) return; // Only pan if isDragging is true (started with one finger)
-
-                    const prevPointer = lastPointers.get(e.pointerId); // This should be the initial position of this pointer
                     const deltaClientX = currentPointer.clientX - prevPointer.clientX;
                     const deltaClientY = currentPointer.clientY - prevPointer.clientY;
 
@@ -1185,27 +1162,23 @@
                     currentViewBox[0] += deltaViewBoxX;
                     currentViewBox[1] += deltaViewBoxY;
 
-                    // Update the prevPointer in lastPointers so the next move calculation is correct
-                    lastPointers.set(e.pointerId, currentPointer);
-
-
                 } else if (lastPointers.size === 2) { // Two fingers (Zoom)
                     let p1 = null, p2 = null;
-                    let first = true;
+                    let i = 0;
                     for (let [id, pos] of lastPointers) {
-                        if (first) { p1 = pos; first = false; }
+                        if (i === 0) p1 = pos;
                         else p2 = pos;
+                        i++;
                     }
                     if (!p1 || !p2) return;
 
-                    const currentPinchDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+                    // Calculate old and new distances between fingers
+                    const oldDistance = Math.hypot(p1.clientX - prevPointer.clientX, p1.clientY - prevPointer.clientY); // This is not quite right, should be distance between two current fingers
+                    const newDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+                    
+                    if (oldDistance === 0) return; // Avoid division by zero
 
-                    if (initialPinchDistance === null || initialPinchDistance === 0) {
-                        initialPinchDistance = currentPinchDistance;
-                        return; // Not enough info yet for a good zoom
-                    }
-
-                    const zoomFactor = initialPinchDistance / currentPinchDistance; // Inverse for pinch-to-zoom effect
+                    const zoomFactor = newDistance / oldDistance;
 
                     // Calculate current center point of the two fingers in client coordinates
                     const clientCenterX = (p1.clientX + p2.clientX) / 2;
@@ -1217,27 +1190,12 @@
                     const svgCenterY = currentViewBox[1] + (clientCenterY - svgRect.top) / svgRect.height * currentViewBox[3];
 
                     // Apply zoom relative to the center
-                    currentViewBox[2] = initialViewBox[2] * zoomFactor; // Scale width
-                    currentViewBox[3] = initialViewBox[3] * zoomFactor; // Scale height
-
-                    currentViewBox[0] = svgCenterX - (currentViewBox[2] / 2);
-                    currentViewBox[1] = svgCenterY - (currentViewBox[3] / 2);
-
-                    // Optional: Limit zoom levels if needed
-                    const MIN_ZOOM_WIDTH = CHART_WIDTH * 0.2; // Example: Minimum zoom level
-                    const MAX_ZOOM_WIDTH = CHART_WIDTH * 5; // Example: Maximum zoom level
-
-                    if (currentViewBox[2] < MIN_ZOOM_WIDTH) {
-                        currentViewBox[2] = MIN_ZOOM_WIDTH;
-                        currentViewBox[3] = CHART_HEIGHT * (MIN_ZOOM_WIDTH / CHART_WIDTH); // Maintain aspect ratio
-                    } else if (currentViewBox[2] > MAX_ZOOM_WIDTH) {
-                        currentViewBox[2] = MAX_ZOOM_WIDTH;
-                        currentViewBox[3] = CHART_HEIGHT * (MAX_ZOOM_WIDTH / CHART_WIDTH); // Maintain aspect ratio
-                    }
-
-                    // Re-calculate initial pinch distance for the next delta calculation for continuous zoom
-                    initialPinchDistance = currentPinchDistance;
+                    currentViewBox[0] = svgCenterX - (currentViewBox[2] / zoomFactor / 2);
+                    currentViewBox[1] = svgCenterY - (currentViewBox[3] / zoomFactor / 2);
+                    currentViewBox[2] /= zoomFactor;
+                    currentViewBox[3] /= zoomFactor;
                 }
+
                 renderChart();
             });
 
@@ -1246,11 +1204,6 @@
                 if (lastPointers.size === 0) {
                     isDragging = false;
                     chartContainer.classList.remove('dragging');
-                    initialPinchDistance = null; // Reset pinch state
-                    // Store the current viewBox as the new initialViewBox for the next pinch gesture
-                    initialViewBox = [...currentViewBox];
-                } else if (lastPointers.size === 1) {
-                    isDragging = true; // If one pointer remains, transition to pan mode
                 }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
@@ -1260,17 +1213,14 @@
                 if (lastPointers.size === 0) {
                     isDragging = false;
                     chartContainer.classList.remove('dragging');
-                    initialPinchDistance = null; // Reset pinch state
-                    initialViewBox = [...currentViewBox];
-                } else if (lastPointers.size === 1) {
-                    isDragging = true;
                 }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
 
+
             // --- INITIALIZATION & MAIN GAME LOOP ---
             svgChart.setAttribute('viewBox', currentViewBox.join(' '));
-            svgChart.setAttribute('preserveAspectRatio', 'none'); // Important for flexible scaling
+            svgChart.setAttribute('preserveAspectRatio', 'none');
 
             prefillChartWithCandles();
             updateAllDisplays();
