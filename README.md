@@ -116,7 +116,7 @@
             overflow: hidden; /* Chart pan is handled by SVG viewBox, not CSS overflow */
             border-left: 1px solid var(--border-color);
             cursor: grab;
-            touch-action: none; /* Prevent browser touch gestures on chart area for independent pan/zoom */
+            touch-action: none; /* Prevent browser touch gestures on chart area for independent pan */
         }
         #chart-container.dragging {
             cursor: grabbing;
@@ -359,12 +359,8 @@
                 margin-bottom: 10px;
             }
             .main-content {
-                height: auto; /* Allow content to define height */
+                height: 100%; /* Take full height of platform */
                 flex-grow: 1;
-                min-height: 100vh; /* Ensure it's at least viewport height */
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between; /* Push footer to bottom */
             }
             .main-header {
                 padding: 5px 8px;
@@ -389,8 +385,6 @@
                 font-size: 10px;
                 border-left: none;
                 flex-shrink: 0;
-                margin-top: auto;
-                align-self: flex-end;
             }
 
             .right-panel {
@@ -749,7 +743,6 @@
                 updateNotificationCountdowns();
             }
 
-            // Handles placing a new trade
             function openTrade(direction) {
                 const investment = parseFormattedNumber(investmentInput.value);
 
@@ -843,7 +836,6 @@
                 updateAllDisplays();
             }
 
-            // Renders/updates all active trade indicators on the SVG chart
             function renderBetIndicators() {
                 svgChart.querySelectorAll('.bet-candle-dot, .bet-label-group').forEach(el => el.remove());
 
@@ -1111,64 +1103,58 @@
             btnUp.addEventListener('click', () => openTrade('up'));
             btnDown.addEventListener('click', () => openTrade('down'));
 
-            // --- Chart Panning Event Listeners (ZOOM REMOVED) ---
+            // --- Chart Panning Event Listeners (ZOOM REMOVED, ONLY PAN) ---
+            // Only using 'lastPointer' for the single active pointer
+            // Removed 'pointers' map as it was for multi-touch (zoom)
             chartContainer.addEventListener('pointerdown', (e) => {
-                // Only start dragging if it's the first pointer
-                if (pointers.size === 0) { 
+                // Only start dragging if it's the first pointer (e.pointerId indicates a new touch/click)
+                // This prevents multiple pointers from starting separate drag operations
+                if (!isDragging) { // Only start if no drag is already in progress
                     isDragging = true;
-                    e.preventDefault(); 
-                    chartContainer.setPointerCapture(e.pointerId); 
-                    lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+                    e.preventDefault(); // Prevent default browser gestures (like scrolling/zooming)
+                    chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag
+                    lastPointer = { clientX: e.clientX, clientY: e.clientY }; // Store initial position of this pointer
+                    chartContainer.classList.add('dragging'); 
                 }
             });
 
             chartContainer.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
                 
-                // Ensure it's a single pointer for pan
-                if (pointers.size === 1) { 
-                    const currentPointer = { clientX: e.clientX, clientY: e.clientY };
-                    const prevPointer = lastPointers.get(e.pointerId);
-                    if (!prevPointer) return; 
+                // Ensure this event is from the currently dragging pointer
+                if (e.pointerId !== chartContainer.hasPointerCapture) return; 
 
-                    const deltaClientX = currentPointer.clientX - prevPointer.clientX;
-                    const deltaClientY = currentPointer.clientY - prevPointer.clientY;
+                const currentClientX = e.clientX;
+                const currentClientY = e.clientY;
 
-                    const svgRect = svgChart.getBoundingClientRect();
-                    const scaleX = currentViewBox[2] / svgRect.width;
-                    const scaleY = currentViewBox[3] / svgRect.height;
+                const deltaClientX = currentClientX - lastPointer.clientX;
+                const deltaClientY = currentClientY - lastPointer.clientY;
 
-                    const deltaViewBoxX = -deltaClientX * scaleX; 
-                    const deltaViewBoxY = -deltaClientY * scaleY; 
+                const svgRect = svgChart.getBoundingClientRect();
+                const scaleX = currentViewBox[2] / svgRect.width;
+                const scaleY = currentViewBox[3] / svgRect.height;
 
-                    currentViewBox[0] += deltaViewBoxX;
-                    currentViewBox[1] += deltaViewBoxY;
-                    
-                    lastPointers.set(e.pointerId, currentPointer); // Update last position
+                const deltaViewBoxX = -deltaClientX * scaleX; 
+                const deltaViewBoxY = -deltaClientY * scaleY; 
 
-                    renderChart(); 
-                } else { // If multiple pointers (was zoom attempt), stop dragging to prevent weird behavior
-                    isDragging = false;
-                    chartContainer.classList.remove('dragging');
-                    pointers.clear(); // Clear all pointers
-                }
+                currentViewBox[0] += deltaViewBoxX;
+                currentViewBox[1] += deltaViewBoxY;
+                
+                // Update lastPointer position for the next move
+                lastPointer = { clientX: currentClientX, clientY: currentClientY };
+
+                renderChart(); 
             });
 
             chartContainer.addEventListener('pointerup', (e) => {
-                lastPointers.delete(e.pointerId);
-                if (lastPointers.size === 0) {
-                    isDragging = false;
-                    chartContainer.classList.remove('dragging');
-                }
-                chartContainer.releasePointerCapture(e.pointerId);
+                isDragging = false;
+                chartContainer.classList.remove('dragging');
+                chartContainer.releasePointerCapture(e.pointerId); // Release pointer capture
             });
 
             chartContainer.addEventListener('pointercancel', (e) => {
-                lastPointers.delete(e.pointerId);
-                if (lastPointers.size === 0) {
-                    isDragging = false;
-                    chartContainer.classList.remove('dragging');
-                }
+                isDragging = false;
+                chartContainer.classList.remove('dragging');
                 chartContainer.releasePointerCapture(e.pointerId);
             });
 
