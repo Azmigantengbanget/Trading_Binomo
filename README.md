@@ -27,19 +27,20 @@
             font-family: 'Roboto', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-primary);
-            /* overflow: hidden; Removed to allow body scroll */
-            -webkit-user-select: none;
+            overflow: hidden; /* Prevent body scroll by default, handled by platform */
+            -webkit-user-select: none; /* Disable text selection on touch devices */
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            /* touch-action: pan-y; Removed as we want full scroll */
         }
         .trading-platform {
             display: flex;
             width: 100vw;
-            min-height: 100vh; /* Use min-height to allow content to push height */
+            height: 100vh; /* Fixed height for platform, allow internal scrolling */
             position: relative;
-            /* overflow: hidden; Removed to allow platform scroll */
+            overflow-y: auto; /* Allow the entire platform to scroll vertically */
+            overflow-x: hidden; /* Prevent horizontal scroll on the platform */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
         #notification {
             position: absolute; top: 50%; left: 50%;
@@ -59,6 +60,10 @@
             border-right: 1px solid var(--border-color);
             padding-top: 20px; display: flex; flex-direction: column; align-items: center;
             flex-shrink: 0;
+            height: 100vh; /* Make toolbar full height */
+            position: sticky;
+            top: 0;
+            left: 0;
         }
         .toolbar-item {
             color: var(--text-secondary); text-decoration: none;
@@ -70,12 +75,15 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            height: 100vh; /* Make main content full height */
+            flex-grow: 1;
         }
         .main-header {
             display: flex; align-items: center; padding: 10px 20px;
             background-color: var(--bg-panel); border-bottom: 1px solid var(--border-color);
             flex-wrap: wrap;
             gap: 10px;
+            flex-shrink: 0;
         }
         .asset-selector {
             font-weight: 700; font-size: 16px; display: flex; align-items: center;
@@ -108,7 +116,7 @@
             overflow: hidden; /* Chart pan is handled by SVG viewBox, not CSS overflow */
             border-left: 1px solid var(--border-color);
             cursor: grab;
-            touch-action: none; /* Prevent browser touch gestures on chart area */
+            touch-action: none; /* Prevent browser touch gestures on chart area for independent pan/zoom */
         }
         #chart-container.dragging {
             cursor: grabbing;
@@ -190,11 +198,8 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            /* overflow-y: auto; Removed for mobile compatibility, handled by main scroll */
-            /* scrollbar-width: thin; Removed */
-            /* scrollbar-color: var(--border-color) var(--bg-panel); Removed */
+            height: 100vh; /* Full height on desktop */
         }
-        /* Removed custom scrollbar for Webkit, rely on system default */
 
         .trade-info-header {
             display: flex; justify-content: space-between; margin-bottom: 20px;
@@ -277,12 +282,12 @@
             margin-top: 15px;
             padding: 5px;
             display: flex;
-            flex-direction: column-reverse; /* New items appear at bottom */
+            flex-direction: column-reverse;
             gap: 5px;
             font-size: 12px;
             color: var(--text-primary);
-            flex-grow: 1; /* Allow to fill available space between other elements */
-            margin-bottom: 15px; /* Space before majority opinion */
+            flex-grow: 1;
+            margin-bottom: 15px;
             flex-shrink: 1;
         }
 
@@ -332,28 +337,34 @@
         }
 
         /* --- MEDIA QUERIES FOR MOBILE LANDSCAPE --- */
-        /* This is the primary breakpoint for your mobile landscape image */
         @media (max-width: 1024px) and (orientation: landscape) {
             body {
                 font-size: 12px;
-                overflow-y: auto; /* Allow body to scroll vertically in landscape on smaller screens */
+                overflow: hidden; /* Hide body scroll if platform handles it */
             }
             .trading-platform {
                 flex-direction: row;
-                min-height: 100vh; /* Allow content to push height */
-                height: auto; /* Height adapts to content */
-                align-items: flex-start; /* Align items to top */
+                height: 100vh; /* Set platform to full viewport height */
+                overflow-y: auto; /* Allow the entire platform to scroll vertically on mobile landscape */
+                overflow-x: hidden; /* Prevent horizontal scroll on the platform */
+                align-items: stretch; /* Stretch children to fill available height */
             }
             .left-toolbar {
                 width: 40px;
                 padding-top: 5px;
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
+                height: 100%;
             }
             .toolbar-item {
                 font-size: 16px;
                 margin-bottom: 10px;
+            }
+            .main-content {
+                height: auto; /* Allow content to define height */
+                flex-grow: 1;
+                min-height: 100vh; /* Ensure it's at least viewport height */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between; /* Push footer to bottom */
             }
             .main-header {
                 padding: 5px 8px;
@@ -362,6 +373,7 @@
                 overflow-x: auto;
                 justify-content: flex-start;
                 gap: 5px;
+                flex-shrink: 0;
             }
             .main-header::-webkit-scrollbar { height: 0px; }
             .main-header { -ms-overflow-style: none; scrollbar-width: none; }
@@ -375,38 +387,41 @@
             .main-footer {
                 padding: 4px 8px;
                 font-size: 10px;
-                border-left: none; /* No border needed if panel sits directly below */
-                flex-shrink: 0; /* Important */
+                border-left: none;
+                flex-shrink: 0;
+                margin-top: auto;
+                align-self: flex-end;
             }
 
             .right-panel {
-                width: 180px; /* Much narrower right panel */
+                width: 180px;
                 padding: 8px;
-                border-left: none; /* Remove left border for mobile */
-                overflow-y: visible; /* Content flows, then body scrolls */
-                flex-direction: column; /* Ensure elements stack vertically */
-                justify-content: flex-start; /* Align items from the top */
-                align-items: stretch; /* Make children take full width */
-                flex-grow: 0; /* Don't grow, keep specific width */
-                flex-shrink: 0; /* Don't shrink below 180px */
+                border-left: none;
+                flex-direction: column;
+                flex-shrink: 0;
                 height: auto; /* Allow height to adapt to content */
                 min-height: 100vh; /* Ensure it's at least viewport height */
-                border-bottom: 1px solid var(--border-color); /* Add a bottom border if it's the end of content */
+                overflow-y: auto; /* Allow right panel to scroll independently */
+                scrollbar-width: thin; /* Firefox */
+                scrollbar-color: var(--border-color) var(--bg-panel); /* Firefox */
             }
-            /* Remove custom scrollbar styles for right panel as body now scrolls */
+            .right-panel::-webkit-scrollbar { width: 4px; }
+            .right-panel::-webkit-scrollbar-track { background: var(--bg-panel); }
+            .right-panel::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 2px; border: 1px solid var(--bg-panel); }
 
             .trade-info-header {
                 margin-bottom: 8px;
                 padding-bottom: 8px;
-                flex-wrap: wrap; /* Allow wrapping of info boxes within narrower panel */
-                gap: 3px; /* Smaller gap for info boxes */
+                flex-wrap: wrap;
+                gap: 3px;
                 justify-content: space-between;
                 border-bottom: 1px solid var(--border-color);
                 flex-shrink: 0;
+                order: 1;
             }
             .info-box {
                 min-width: unset;
-                flex-basis: 48%; /* Try to fit two per line */
+                flex-basis: 48%;
             }
             .info-box .label { font-size: 9px; }
             .info-box .value { font-size: 11px; }
@@ -415,6 +430,7 @@
                 margin-bottom: 8px;
                 padding-top: 5px;
                 flex-shrink: 0;
+                order: 2;
             }
             .trade-control-box label { font-size: 11px; margin-bottom: 4px; }
             .input-group { height: 30px; }
@@ -427,16 +443,18 @@
                 margin-bottom: 8px;
                 font-size: 11px;
                 flex-shrink: 0;
+                order: 3;
             }
-            .payout-percent { font-size: 9px; }
 
+            /* --- Key layout change for mobile landscape to align buttons at bottom --- */
             #trade-notification-box {
-                height: auto; /* Height is flexible based on content */
-                flex-grow: 1; /* Allow to take available space */
-                max-height: 120px; /* Adjusted max height to leave more space below */
+                height: auto;
+                max-height: unset; /* Remove max-height to allow full flexible grow */
                 margin-top: 8px;
                 margin-bottom: 8px;
+                flex-grow: 1; /* Allow to take ALL available space */
                 flex-shrink: 1;
+                order: 4;
             }
             .trade-notification-item {
                 padding: 4px 6px;
@@ -447,6 +465,7 @@
                 padding-top: 8px;
                 margin-bottom: 8px;
                 flex-shrink: 0;
+                order: 5;
             }
             .majority-opinion label { font-size: 11px; }
             .opinion-bar { height: 18px; }
@@ -455,10 +474,11 @@
                 height: 40px;
                 font-size: 18px;
                 margin-top: 5px;
-                margin-bottom: 0; /* No bottom margin, it's the last element */
+                margin-bottom: 0;
                 flex-shrink: 0;
+                order: 6;
             }
-            .action-button.up { margin-bottom: 5px; } /* Small space between up/down */
+            .action-button.up { margin-bottom: 5px; }
         }
         /* Further adjustments for extremely small mobile screens (e.g., iPhone SE landscape) */
         @media (max-width: 500px) and (orientation: landscape) {
@@ -582,11 +602,11 @@
 
             // --- Variables for Chart Panning ---
             let isDragging = false;
-            let startDragClientX;
-            let startDragClientY;
+            let lastPointer = { clientX: 0, clientY: 0 }; // Stores the last position of the single pointer for pan
+            
+            // currentViewBox: [minX, minY, width, height] of the currently visible SVG area
             const initialYCenterSvg = mapPriceToY(currentPrice);
-            const initialViewBoxY = initialYCenterSvg - (CHART_HEIGHT / 2);
-            let currentViewBox = [0, initialViewBoxY, CHART_WIDTH, CHART_HEIGHT];
+            let currentViewBox = [0, initialYCenterSvg - (CHART_HEIGHT / 2), CHART_WIDTH, CHART_HEIGHT];
 
             // --- DOM Elements ---
             const notification = document.getElementById('notification');
@@ -606,13 +626,11 @@
 
             // --- HELPER FUNCTIONS FOR NUMBER FORMATTING AND PARSING ---
 
-            // Formats a number with dots as thousands separators (e.g., 14000 -> 14.000)
             function formatNumberWithDots(num) {
                 const number = typeof num === 'number' && !isNaN(num) ? num : 0;
                 return new Intl.NumberFormat('id-ID').format(Math.round(number));
             }
 
-            // Parses a formatted number string (e.g., "14.000") back to a float (e.g., 14000)
             function parseFormattedNumber(str) {
                 if (typeof str !== 'string') return str;
                 const cleanedStr = str.replace(/\./g, '');
@@ -620,14 +638,12 @@
                 return isNaN(parsed) ? 0 : parsed;
             }
 
-            // Formats a number as currency (e.g., 14000 -> Rp 14.000)
             function formatCurrency(amount) {
                 return `Rp ${formatNumberWithDots(amount)}`;
             }
 
             // --- CORE CHART FUNCTIONS ---
 
-            // Maps a price value to a Y-coordinate on the SVG chart.
             function mapPriceToY(price) {
                 const priceRange = MAX_PRICE - MIN_PRICE;
                 const clampedPrice = Math.max(MIN_PRICE, Math.min(MAX_PRICE, price));
@@ -635,7 +651,6 @@
                 return CHART_HEIGHT - (percentage * CHART_HEIGHT);
             }
 
-            // Renders all candlesticks on the SVG chart
             function renderChart() {
                 const elementsToRemove = Array.from(svgChart.children).filter(el =>
                     !el.classList.contains('bet-candle-dot') &&
@@ -675,7 +690,6 @@
                 renderBetIndicators();
             }
 
-            // Generates a new candlestick data point and adds it to history
             function generateCandleData() {
                 const open = candleDataHistory.length > 0 ? candleDataHistory[candleDataHistory.length - 1].close : currentPrice;
                 let price = open;
@@ -698,7 +712,6 @@
                 renderChart();
             }
 
-            // Fills the chart with initial candles to avoid empty space
             function prefillChartWithCandles() {
                 for (let i = 0; i < INITIAL_CANDLE_COUNT; i++) {
                     generateCandleData();
@@ -895,7 +908,6 @@
                 });
             }
 
-            // Updates positions and text content of bet indicators for those currently rendered
             function updateBetIndicatorsPositions() {
                 activeTrades.forEach(trade => {
                     if (trade.dotElement && trade.labelGroupElement && trade.labelTextElement && trade.labelBgElement) {
@@ -1099,52 +1111,64 @@
             btnUp.addEventListener('click', () => openTrade('up'));
             btnDown.addEventListener('click', () => openTrade('down'));
 
-            // --- Chart Panning Event Listeners (using pointer events for better touch support) ---
-            let lastPointerX, lastPointerY;
-
+            // --- Chart Panning Event Listeners (ZOOM REMOVED) ---
             chartContainer.addEventListener('pointerdown', (e) => {
-                if (e.pointerType === 'mouse' && e.button !== 0) return; // Only primary mouse button
-                isDragging = true;
-                startDragClientX = e.clientX;
-                startDragClientY = e.clientY;
-                lastPointerX = e.clientX;
-                lastPointerY = e.clientY;
-                chartContainer.classList.add('dragging');
-                e.preventDefault(); // Prevent default touch actions like scrolling/zooming
-                chartContainer.setPointerCapture(e.pointerId); // Lock pointer capture for consistent drag
+                // Only start dragging if it's the first pointer
+                if (pointers.size === 0) { 
+                    isDragging = true;
+                    e.preventDefault(); 
+                    chartContainer.setPointerCapture(e.pointerId); 
+                    lastPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+                }
             });
 
             chartContainer.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
                 
-                const deltaClientX = e.clientX - lastPointerX;
-                const deltaClientY = e.clientY - lastPointerY;
+                // Ensure it's a single pointer for pan
+                if (pointers.size === 1) { 
+                    const currentPointer = { clientX: e.clientX, clientY: e.clientY };
+                    const prevPointer = lastPointers.get(e.pointerId);
+                    if (!prevPointer) return; 
 
-                const svgRect = svgChart.getBoundingClientRect();
-                const scaleX = currentViewBox[2] / svgRect.width;
-                const scaleY = currentViewBox[3] / svgRect.height;
+                    const deltaClientX = currentPointer.clientX - prevPointer.clientX;
+                    const deltaClientY = currentPointer.clientY - prevPointer.clientY;
 
-                const deltaViewBoxX = -deltaClientX * scaleX;
-                const deltaViewBoxY = -deltaClientY * scaleY;
+                    const svgRect = svgChart.getBoundingClientRect();
+                    const scaleX = currentViewBox[2] / svgRect.width;
+                    const scaleY = currentViewBox[3] / svgRect.height;
 
-                currentViewBox[0] += deltaViewBoxX;
-                currentViewBox[1] += deltaViewBoxY;
+                    const deltaViewBoxX = -deltaClientX * scaleX; 
+                    const deltaViewBoxY = -deltaClientY * scaleY; 
 
-                lastPointerX = e.clientX;
-                lastPointerY = e.clientY;
+                    currentViewBox[0] += deltaViewBoxX;
+                    currentViewBox[1] += deltaViewBoxY;
+                    
+                    lastPointers.set(e.pointerId, currentPointer); // Update last position
 
-                renderChart();
+                    renderChart(); 
+                } else { // If multiple pointers (was zoom attempt), stop dragging to prevent weird behavior
+                    isDragging = false;
+                    chartContainer.classList.remove('dragging');
+                    pointers.clear(); // Clear all pointers
+                }
             });
 
             chartContainer.addEventListener('pointerup', (e) => {
-                isDragging = false;
-                chartContainer.classList.remove('dragging');
-                chartContainer.releasePointerCapture(e.pointerId); // Release pointer capture
+                lastPointers.delete(e.pointerId);
+                if (lastPointers.size === 0) {
+                    isDragging = false;
+                    chartContainer.classList.remove('dragging');
+                }
+                chartContainer.releasePointerCapture(e.pointerId);
             });
 
             chartContainer.addEventListener('pointercancel', (e) => {
-                isDragging = false;
-                chartContainer.classList.remove('dragging');
+                lastPointers.delete(e.pointerId);
+                if (lastPointers.size === 0) {
+                    isDragging = false;
+                    chartContainer.classList.remove('dragging');
+                }
                 chartContainer.releasePointerCapture(e.pointerId);
             });
 
